@@ -26,7 +26,7 @@ Bytes ripemd160(const Bytes& m){
   return out;
 }
 
-Bytes has160(const Bytes& m){
+Bytes hash160(const Bytes& m){
   auto h = sha256(m);
   Bytes tmp(h.begin(), h.end());
   return ripemd160(tmp);
