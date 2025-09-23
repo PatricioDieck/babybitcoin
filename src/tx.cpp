@@ -63,8 +63,7 @@ Bytes build_p2pkh_scriptSig(const Bytes &sig_der, const Bytes &pub) {
   return s;
 }
 
-Hash256 sighash_all(const Transaction &tx, size_t i,
-                    const Bytes &prevout_scriptPubKey) {
+Hash256 sighash_all(const Transaction &tx, size_t i, const Bytes &prevout_scriptPubKey) {
   if (i >= tx.vin.size())
     throw std::runtime_error("sighash index out of range!");
 
@@ -72,8 +71,7 @@ Hash256 sighash_all(const Transaction &tx, size_t i,
   // prevout_scriptPubKey
   Transaction t = tx;
 
-  for (auto &in : t.vin)
-    in.scriptSig.clear();
+  for (auto &in : t.vin) in.scriptSig.clear();
   t.vin[i].scriptSig = prevout_scriptPubKey;
 
   Bytes ser = t.serialize();
