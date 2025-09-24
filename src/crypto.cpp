@@ -34,37 +34,35 @@ Bytes hash160(const Bytes& m){
 
 // --- secp256k1 helper ---
 
-static Bytes compress_pubkey(EC_KEY *key) {
+static Bytes compress_pubkey(EC_KEY* key){
+  // Force compressed form
+  EC_KEY_set_conv_form(key, POINT_CONVERSION_COMPRESSED);
   int len = i2o_ECPublicKey(key, nullptr);
-  if (len <= 0)
-    throw std::runtime_error("pubkey length");
+  if (len<=0) throw std::runtime_error("pub len");
   Bytes out(len);
-  unsigned char *p = out.data();
-  if (i2o_ECPublicKey(key, &p) != len)
-    throw std::runtime_error("pubkey serialize");
+  unsigned char* p = out.data();
+  if (i2o_ECPublicKey(key, &p) != len) throw std::runtime_error("pub ser");
   return out;
 }
 
 // --- Keys & ECDSA ---
 
-KeyPair generate_keypair() {
+KeyPair generate_keypair(){
   KeyPair kp;
+  EC_KEY* key = EC_KEY_new_by_curve_name(NID_secp256k1);
+  if(!key) throw std::runtime_error("ec new");
+  // ensure compressed form on this key too
+  EC_KEY_set_conv_form(key, POINT_CONVERSION_COMPRESSED);
 
-  EC_KEY *key = EC_KEY_new_by_curve_name(NID_secp256k1);
-  if (!key)
-    throw std::runtime_error("EC_KEY_new_by_curve_name");
-  if (EC_KEY_generate_key(key) != 1) {
-    EC_KEY_free(key);
-    throw std::runtime_error("EC_KEY_generate_key");
-  }
+  if(EC_KEY_generate_key(key)!=1){ EC_KEY_free(key); throw std::runtime_error("ec gen"); }
 
-  const BIGNUM *priv_bn = EC_KEY_get0_private_key(key);
-  Bytes priv(32, 0);
+  const BIGNUM* priv_bn = EC_KEY_get0_private_key(key);
+  Bytes priv(32,0);
   BN_bn2binpad(priv_bn, priv.data(), 32);
-
   kp.priv = std::move(priv);
-  kp.pub = compress_pubkey(key);
 
+  // serialize compressed public key
+  kp.pub  = compress_pubkey(key);
   EC_KEY_free(key);
   return kp;
 }

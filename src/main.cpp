@@ -77,6 +77,11 @@ int main() {
         // build scriptSig: <sig+SIGHASH_ALL><pubkey>
         spend.vin[0].scriptSig = build_p2pkh_scriptSig(sig_der, miner.pub);
 
+        Bytes from_spk = p2pkh_hash_from_script(prev_spk);
+        Bytes from_pub = hash160(miner.pub);
+        std::cout << "prevout h160: " << hex(from_spk) << "\n";
+        std::cout << "pubkey  h160: " << hex(from_pub) << "\n";
+
         // verify the P2PKH input 0 using the prevout's scriptPubKey 
         bool ok = verify_p2pkh_input(spend, 0, prev_spk);
         std::cout << "Spend tx input verify: " << (ok ? "OK" : "FAIL") << "\n";
