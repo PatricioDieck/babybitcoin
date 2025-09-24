@@ -49,7 +49,7 @@ Hash256 Transaction::txid() const { return dbl_sha256(serialize()); }
 
 // --- Signing/Verification (P2PKH, SIGHASH_ALL) ---
 
-Bytes build_p2pkh_scriptSig(const Bytes &sig_der, const Bytes &pub) {
+Bytes build_p2pkh_scriptSig(const Bytes& sig_der, const Bytes &pub) {
 
   Bytes s;
   Bytes sig_plus = sig_der;
@@ -63,7 +63,7 @@ Bytes build_p2pkh_scriptSig(const Bytes &sig_der, const Bytes &pub) {
   return s;
 }
 
-Hash256 sighash_all(const Transaction &tx, size_t i, const Bytes &prevout_scriptPubKey) {
+Hash256 sighash_all(const Transaction& tx, size_t i, const Bytes& prevout_scriptPubKey) {
   if (i >= tx.vin.size())
     throw std::runtime_error("sighash index out of range!");
 
