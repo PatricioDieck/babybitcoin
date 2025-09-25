@@ -52,6 +52,11 @@ static bool has_leading_zero_bits(const Hash256& h, uint32_t bits){
   return (be[full_zero_bytes] & mask) == 0;
 }
 
+bool header_meets_pow(const BlockHeader& H) {
+    return has_leading_zero_bits(H.hash(), H.bits);
+  }
+
+
 Hash256 merkle_root(const std::vector<Transaction>& vtx) {
   if (vtx.empty()) return Hash256{}; // all-zero if no txs (we'll avoid empty blocks in practice)
 

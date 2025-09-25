@@ -43,3 +43,6 @@ Hash256 merkle_root(const std::vector<Transaction> &vtx);
 // Scan nonces to find a header hash with at least 'bits' leading zero bits.
 // Returns true if found a solution (header.nonce set), false otherwise.
 bool mine_block(Block &b);
+
+// Returns true if header.hash() meets header.bits (our simple "leading-zero-bits" target).
+bool header_meets_pow(const BlockHeader& h);
