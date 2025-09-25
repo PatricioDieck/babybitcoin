@@ -7,6 +7,7 @@
 #include "script_min.h"
 #include "tx.h"
 #include "block.h"
+#include "chain.h"
 
 // Pretty-print a 32-byte hash in the common BE (human) form.
 // Internally we store Hash256 in little-endian; reversing makes it readable.
@@ -92,22 +93,57 @@ int main() {
         Block b;
         b.header.version = 1;
         b.header.prev_block = Hash256{};
-        b.header.timestamp = static_cast<uint32_t>(std::chrono::seconds(std::time(nullptr)).count());
+        b.header.timestamp = static_cast<uint32_t>(std::time(nullptr));
         b.header.bits = 18; // easy difficulty for quick demo (adjust to mine faster)
         b.vtx.push_back(coinbase);
 
         bool mined = mine_block(b);
+        std::cout << "------ Block 1 ------\n";
         std::cout << "Mined: " << (mined ? "YES" : "NO") << "\n";
         std::cout << "Block merkle root: " << hex_hash(b.header.merkle_root) << "\n";
         std::cout << "Block hash:        " << hex_hash(b.header.hash()) << "\n";
         std::cout << "Nonce:             " << b.header.nonce << "\n";
+        
+        ChainState cs;
+        bool accepted = cs.accept_block(b);
+        std::cout << "Genesis block accepted into the chain: " << (accepted ? "YES" : "NO") << "\n";
+        std::cout << "\n\n";
+
+        // 5) Build a block that processes the spending transaction 
+        Block b1;
+        b1.header.version = 1;
+        b1.header.prev_block = b.header.hash();
+        b1.header.timestamp = static_cast<uint32_t>(std::time(nullptr));
+        b1.header.bits = 18;
+        
+         // Block 2: Spend transaction with its own coinbase  
+        Transaction coinbase2 = make_coinbase_tx(miner.pub, 50*COIN, Bytes{0x04,0x05,0x06});
+        b1.vtx.push_back(coinbase2);  // Must have coinbase first
+        b1.vtx.push_back(spend);
+
+        bool mined1 = mine_block(b1);
+        std::cout << "------ Block 2 ------\n";
+        std::cout << "Mined Transaction: " << (mined1 ? "YES" : "NO") << "\n";
+        std::cout << "Block merkle root: " << hex_hash(b1.header.merkle_root) << "\n";
+        std::cout << "Block hash:        " << hex_hash(b1.header.hash()) << "\n";
+        std::cout << "Nonce:             " << b1.header.nonce << "\n";
+        bool accepted1 = cs.accept_block(b1);
+        std::cout << "Transaction accepted into chain: " << (accepted1 ? "YES" : "NO") << "\n";
+        std::cout << "\n\n";
+
+
+        // Check miner + Alice's balance 
+        int64_t bal = cs.balance_for_pubkey(miner.pub);
+        std::cout << "Miner balance (sats): " << bal << "\n";
+        int64_t alice_bal = cs.balance_for_pubkey(alice.pub);
+        std::cout << "Alice's balance (sats): " << alice_bal << "\n";
 
         if (!mined) { 
             std::cout << "Tip: lower b.header.bits if this takes too long (e.g. 16 or 14)\n";
         }
 
         std::cout << "==Done== \n";
-        return mined ? 0 :1;
+        return mined ? 0 : 1;
 
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << "\n";
