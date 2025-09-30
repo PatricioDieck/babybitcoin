@@ -2,6 +2,7 @@
 #include "script_min.h"
 #include <cstring>
 #include <stdexcept>
+#include <iostream>
 
 // --- helpers ---
 
@@ -90,19 +91,31 @@ bool ChainState::validate_tx(const Transaction& tx, int64_t& fee) const {
 bool ChainState::validate_block(const Block& b, int64_t& total_fees) const {
   // 1) Basic structure: at least 1 tx (coinbase)
   if (b.vtx.empty()) return false;
-  if (!is_coinbase(b.vtx[0])) return false;
+  if (!is_coinbase(b.vtx[0])) {
+    std::cerr << "Block does not have a coinbase transaction" << "\n";
+    return false;
+  }
 
   // 2) PoW correct for the header we see
-  if (!header_meets_pow(b.header)) return false;
+  if (!header_meets_pow(b.header)) {
+    std::cerr << "VALIDATION ERROR: Block header does not meet PoW" << "\n";
+    return false;
+  }
 
   // 3) Merkle root matches txids
-  if (merkle_root(b.vtx) != b.header.merkle_root) return false;
+  if (merkle_root(b.vtx) != b.header.merkle_root) {
+    std::cerr << "VALIDATION ERROR: Merkle root does not match txids" << "\n";
+    return false;
+  }
 
   // 4) Validate txs; accumulate fees from non-coinbase txs
   total_fees = 0;
   for (size_t i = 0; i < b.vtx.size(); ++i) {
     int64_t fee = 0;
-    if (!validate_tx(b.vtx[i], fee)) return false;
+    if (!validate_tx(b.vtx[i], fee)) {
+      std::cerr << "VALIDATION ERROR: Transaction is invalid" << "\n";
+      return false;
+    }
     if (i != 0) total_fees += fee; // coinbase fee handled as subsidy budget
   }
 
