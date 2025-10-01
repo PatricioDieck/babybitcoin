@@ -67,6 +67,7 @@ KeyPair generate_keypair(){
   return kp;
 }
 
+// Sign the hash of the entire transaction with the private key of the owner of the previous output
 Bytes ecdsa_sign(const Hash256 &h, const Bytes &priv) {
   // Build EC_KEY from private scalar
   EC_KEY *key = EC_KEY_new_by_curve_name(NID_secp256k1);

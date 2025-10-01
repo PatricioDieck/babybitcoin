@@ -10,14 +10,14 @@ struct OutPoint {
 // Input: what we’re spending + the proof (scriptSig) we provide.
 struct TxIn {
   OutPoint prevout;
-  Bytes scriptSig; // for P2PKH: <sig (DER) + 1-byte SIGHASH_ALL> <pubkey>
-  uint32_t sequence{0xffffffff};
+  Bytes scriptSig; // for P2PKH- unlocks/signs tx to new owner: <sig (DER) + 1-byte SIGHASH_ALL> <pubkey>
+  uint32_t sequence{0xffffffff}; 
 };
 
 // Output: value + locking script (scriptPubKey).
 struct TxOut {
   int64_t value{0};   // satoshis
-  Bytes scriptPubKey; // P2PKH script (25 bytes)
+  Bytes scriptPubKey; // P2PKH script (25 bytes)/ locks/assigns tx to new owner
 };
 
 // A transaction: version, inputs, outputs, locktime.
@@ -31,7 +31,7 @@ struct Transaction {
   Hash256 txid() const; // dbl_sha256(serialized bytes)
 };
 
-// Build scriptSig for P2PKH: <sig DER + 0x01 SIGHASH_ALL> <pubkey>
+// Build scriptSig (unlocking, ownership-proving script) for P2PKH: <sig DER + 0x01 SIGHASH_ALL> <pubkey>
 Bytes build_p2pkh_scriptSig(const Bytes& sig_der, const Bytes& pub);
 
 // Compute the SIGHASH_ALL digest for input i (legacy): all scriptSigs empty,
