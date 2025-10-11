@@ -117,9 +117,6 @@ This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps
 
   // --- Helpers ---
   static uint32_t    checksum4_le_(const Bytes& payload);
-  static std::string be_hex_key_(const Hash256& le);
-  static uint32_t    read_u32_le_(const uint8_t*& p, const uint8_t* end);
-  static int64_t     read_i64_le_(const uint8_t*& p, const uint8_t* end);
 
   // --- Parsers (inverse of your serialize()) ---
   static OutPoint    parse_outpoint_(const uint8_t*& p, const uint8_t* end);

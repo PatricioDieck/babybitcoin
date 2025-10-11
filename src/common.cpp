@@ -1,4 +1,5 @@
 #include "common.h"
+
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>
@@ -109,4 +110,19 @@ uint64_t read_varint(const uint8_t *&p, const uint8_t *end) {
     v |= (uint64_t)p[i] << (8 * i);
   p += 8;
   return v;
+}
+
+std::string be_hex_key_(const Hash256& le) {
+  Bytes be(le.rbegin(), le.rend());
+  return hex(be);
+}
+uint32_t read_u32_le_(const uint8_t*& p, const uint8_t* end) {
+  if (end - p < 4) throw std::runtime_error("u32 eof");
+  uint32_t v = (uint32_t)p[0] | ((uint32_t)p[1]<<8) | ((uint32_t)p[2]<<16) | ((uint32_t)p[3]<<24);
+  p += 4; return v;
+}
+int64_t read_i64_le_(const uint8_t*& p, const uint8_t* end) {
+  if (end - p < 8) throw std::runtime_error("i64 eof");
+  uint64_t v=0; for (int i=0;i<8;i++) v |= (uint64_t)p[i] << (8*i);
+  p += 8; return (int64_t)v;
 }

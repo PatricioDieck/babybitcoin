@@ -13,24 +13,9 @@
 #define LOG(msg) do { std::cout << "[P2P] " << msg << std::endl; } while(0)
 
 // ---------------- Helpers ----------------
-
 uint32_t P2PNode::checksum4_le_(const Bytes& payload) {
   Hash256 h = dbl_sha256(payload);
   return (uint32_t)h[0] | ((uint32_t)h[1]<<8) | ((uint32_t)h[2]<<16) | ((uint32_t)h[3]<<24);
-}
-std::string P2PNode::be_hex_key_(const Hash256& le) {
-  Bytes be(le.rbegin(), le.rend());
-  return hex(be);
-}
-uint32_t P2PNode::read_u32_le_(const uint8_t*& p, const uint8_t* end) {
-  if (end - p < 4) throw std::runtime_error("u32 eof");
-  uint32_t v = (uint32_t)p[0] | ((uint32_t)p[1]<<8) | ((uint32_t)p[2]<<16) | ((uint32_t)p[3]<<24);
-  p += 4; return v;
-}
-int64_t P2PNode::read_i64_le_(const uint8_t*& p, const uint8_t* end) {
-  if (end - p < 8) throw std::runtime_error("i64 eof");
-  uint64_t v=0; for (int i=0;i<8;i++) v |= (uint64_t)p[i] << (8*i);
-  p += 8; return (int64_t)v;
 }
 
 // -------------- POSIX sockets ------------

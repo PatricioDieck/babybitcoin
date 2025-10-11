@@ -30,6 +30,11 @@ void write_u32_le(Bytes &out, uint32_t v);
 void write_u64_le(Bytes &out, uint64_t v);
 void write_i64_le(Bytes &out, int64_t v);
 
+// Checksum helpers, hex helpers, and reader helpers
+std::string be_hex_key_(const Hash256& le);
+uint32_t read_u32_le_(const uint8_t*& p, const uint8_t* end);
+int64_t read_i64_le_(const uint8_t*& p, const uint8_t* end);
+
 // CompactSize variable-length integer encoding (counts and lengths).
 void write_varint(Bytes &out, uint64_t v);
 

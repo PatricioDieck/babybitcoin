@@ -100,23 +100,22 @@ int main(int argc, char** argv) {
 
     // --- Spend from genesis to Alice (signed before gossip) ---
     Transaction spend;
-    {
-        TxIn in0; in0.prevout = OutPoint{ coinbase_tx.txid(), 0 };
-        spend.vin.push_back(in0);
+    
+    TxIn in0; in0.prevout = OutPoint{ coinbase_tx.txid(), 0 };
+    spend.vin.push_back(in0);
 
-        TxOut to_alice; to_alice.value = 4 * COIN; to_alice.scriptPubKey = p2pkh_script(alice.pub);
-        TxOut change;   change.value   = 1 * COIN; change.scriptPubKey   = p2pkh_script(miner.pub);
-        spend.vout.push_back(to_alice);
-        spend.vout.push_back(change);
+    TxOut to_alice; to_alice.value = 4 * COIN; to_alice.scriptPubKey = p2pkh_script(alice.pub);
+    TxOut change;   change.value   = 1 * COIN; change.scriptPubKey   = p2pkh_script(miner.pub);
+    spend.vout.push_back(to_alice);
+    spend.vout.push_back(change);
 
-        const Bytes prevout_spk = coinbase_tx.vout[0].scriptPubKey;
-        Hash256 h = sighash_all(spend, 0, prevout_spk);
-        Bytes sig_der = ecdsa_sign(h, miner.priv);
-        spend.vin[0].scriptSig = build_p2pkh_scriptSig(sig_der, miner.pub);
+    const Bytes prevout_spk = coinbase_tx.vout[0].scriptPubKey;
+    Hash256 h = sighash_all(spend, 0, prevout_spk);
+    Bytes sig_der = ecdsa_sign(h, miner.priv);
+    spend.vin[0].scriptSig = build_p2pkh_scriptSig(sig_der, miner.pub);
 
-        bool ok = verify_p2pkh_input(spend, 0, prevout_spk);
-        std::cout << "Spend valid (local sanity): " << (ok ? "YES" : "NO") << "\n";
-    }
+    bool ok = verify_p2pkh_input(spend, 0, prevout_spk);
+    std::cout << "Spend valid (local sanity): " << (ok ? "YES" : "NO") << "\n";
 
     // Gossip the signed transaction (no validation at P2P)
     p2p.broadcast_local_tx(spend);
