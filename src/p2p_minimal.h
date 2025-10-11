@@ -23,7 +23,6 @@
 #include "block.h"    // Block, BlockHeader
 #include "chain.h"    // ChainState
 
-namespace babycoin {
 
 // For CLI convenience: host/port tuple to dial.
 struct PeerAddress {
@@ -79,6 +78,10 @@ private:
     BLOCK   = 0x11, // payload: Block::serialize()
   };
 
+/* 
+#pragma pack(1) tells the compiler: "pack this struct tightly with no padding"
+This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps 
+*/
 #pragma pack(push,1)
   struct MsgHeader {
     uint32_t magic;
@@ -152,4 +155,3 @@ private:
   std::chrono::steady_clock::time_point demo_next_;
 };
 
-} // namespace babycoin

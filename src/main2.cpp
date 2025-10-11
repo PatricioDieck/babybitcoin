@@ -5,6 +5,7 @@
 #include "script_min.h"
 #include "p2p_minimal.h"
 #include "tx.h"
+#include "p2p_minimal.h"
 
 #include <cstdint>
 #include <iostream>
@@ -12,7 +13,7 @@
 #include <thread>
 #include <chrono>
 
-using namespace babycoin;
+
 
 static Transaction make_coinbase(const Bytes& miner_pub, int64_t reward, const Bytes& arbitrary) {
     Transaction tx;
@@ -44,6 +45,7 @@ int main(int argc, char** argv) {
     // --- CLI (optional) ---
     uint16_t listen_port = 18444;
     std::vector<std::pair<std::string,uint16_t>> peers;
+    // starting on arg 1 bc arg 0 is program name
     for (int i=1;i<argc;i++) {
         std::string a = argv[i];
         if (a == "--port" && i+1 < argc) {
@@ -61,7 +63,6 @@ int main(int argc, char** argv) {
 
     P2PNode p2p(cs);
     P2PConfig cfg;
-    cfg.listen_port = 18444;
     cfg.demo_mode = true;            // <= turn on demo
     cfg.demo_tx_to_send = 5;         // send 5 demo TXs
     cfg.demo_ms_between = 800;       // ~0.8s apart

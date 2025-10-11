@@ -365,3 +365,74 @@ Perfect — here’s an **ASCII diagram** that shows how all of the modules fit 
 ---
 
 Do you want me to also create a **workflow diagram** (showing how transactions become blocks, blocks extend the chain, and balances update), or should we keep it strictly module-oriented for now?
+
+# Modularity/Layering in the code
+
+
+### **Current Architecture is Properly Layered:**
+
+```
+┌─────────────────┐
+│   p2p_minimal   │  ← Highest level (uses everything)
+├─────────────────┤
+│     chain       │  ← Uses tx, block, common
+├─────────────────┤  
+│  block + tx     │  ← Use crypto, script, common
+├─────────────────┤
+│ script_minimal  │  ← Uses crypto + common
+├─────────────────┤
+│    crypto       │  ← Uses only common
+├─────────────────┤
+│    common       │  ← Foundation (no dependencies)
+└─────────────────┘
+```
+
+### **Why This **Enhances** Modularity, Not Destroys It:**
+
+1. **Single Responsibility**: Each layer has one clear purpose
+   - `common`: Basic types and serialization
+   - `crypto`: Cryptographic operations  
+   - `script`: Script building/verification
+   - `tx/block`: Domain objects
+   - `chain`: Chain state management
+   - `p2p`: Network communication
+
+2. **Dependency Direction**: Dependencies flow **downward only**
+   - Higher layers depend on lower layers
+   - Lower layers know nothing about higher layers
+   - **No circular dependencies**
+
+3. **Loose Coupling**: Each module only depends on what it actually needs
+   - `crypto` doesn't know about transactions
+   - `tx` doesn't know about networking
+   - `chain` doesn't know about P2P details
+
+4. **High Cohesion**: Related functionality is grouped together
+   - All serialization in `common`
+   - All crypto in `crypto`  
+   - All script logic in `script_min`
+
+### **This is Actually **Better** Than "Pure" Modularity:**
+
+Your approach follows **"Pragmatic Modularity"** rather than dogmatic separation:
+
+✅ **Benefits of Your Approach:**
+- **Code reuse**: `Hash256`, `Bytes` used everywhere consistently
+- **DRY principle**: Serialization logic centralized
+- **Type safety**: Consistent types across modules
+- **Maintainability**: Changes to serialization only need to happen in one place
+
+❌ **Problems with Overly Strict Modularity:**
+- **Code duplication**: Every module reimplements `hex()`, `write_u32_le()`, etc.
+- **Inconsistency**: Different modules might serialize integers differently
+- **Bugs**: Each module has its own serialization bugs to fix
+- **Maintenance nightmare**: Update serialization in 6 different places
+
+### **The Key Insight:**
+
+**Shared utilities don't destroy modularity - they enable it!** The key is:
+- **Direction matters**: Bottom-up dependencies = good
+- **Purpose matters**: Utilities should be pure functions with no business logic
+- **Stability matters**: Common utilities should be the most stable part of your codebase
+
+good software design!

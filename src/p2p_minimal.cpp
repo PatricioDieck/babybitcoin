@@ -9,7 +9,6 @@
 #include <iostream>
 #include <iomanip>
 
-namespace babycoin {
 
 #define LOG(msg) do { std::cout << "[P2P] " << msg << std::endl; } while(0)
 
@@ -399,4 +398,3 @@ void P2PNode::dispatch_(Peer& p, const MsgHeader& h, const Bytes& payload) {
   }
 }
 
-} // namespace babycoin
