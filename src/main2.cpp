@@ -6,6 +6,7 @@
 #include "p2p_minimal.h"
 #include "tx.h"
 #include "p2p_minimal.h"
+#include "cli.cpp"
 
 #include <cstdint>
 #include <iostream>
@@ -14,45 +15,19 @@
 #include <chrono>
 
 
+
 int main(int argc, char** argv) {
     std::cout << "BABYBITCOIN IGNITE\n";
 
     // --- CLI (optional) ---
-    uint16_t listen_port = 18444;
-    std::vector<PeerAddress> peers;
-
-    // starting on arg 1 bc arg 0 is program name
-    for (int i=1;i<argc;i++) {
-        std::string a = argv[i];
-        if (a == "--port" && i+1 < argc) {
-            listen_port = static_cast<uint16_t>(std::stoi(argv[++i]));
-        } else if (a == "--connect" && i+1 < argc) {
-            std::string arg = argv[++i];
-            PeerAddress peer;
-            
-            auto pos = arg.find(':');
-
-            peer.host = arg.substr(0, pos);
-            peer.port = static_cast<uint16_t>(std::stoi(arg.substr(pos+1)));
-            peers.push_back(peer);
-            
-        } else {
-            std::cerr << "Unknown arg: " << a << "\n";
-        }
-    }
+    P2PConfig cfg = parse_command_line(argc, argv);
 
     // --- Chain + P2P ---
     ChainState cs;
 
     P2PNode p2p(cs);
-    P2PConfig cfg;
-    cfg.demo_mode = true;            // <= turn on demo
-    cfg.demo_tx_to_send = 5;         // send 5 demo TXs
-    cfg.demo_ms_between = 800;       // ~0.8s apart
-    cfg.listen_port = listen_port;
-    for (auto& peer : peers) cfg.peers.push_back(peer);
     if (!p2p.start(cfg)) {
-        std::cerr << "Failed to start P2P node on port " << listen_port << "\n";
+        std::cerr << "Failed to start P2P node on port " << cfg.listen_port << "\n";
         return 1;
     }
 
