@@ -29,32 +29,28 @@ static Transaction make_coinbase(const Bytes& miner_pub, int64_t reward, const B
     return tx;
 }
 
-static bool parse_connect(const std::string& s, std::string& host, uint16_t& port) {
-    auto pos = s.find(':');
-    if (pos == std::string::npos) return false;
-    host = s.substr(0, pos);
-    int p = std::stoi(s.substr(pos+1));
-    if (p < 1 || p > 65535) return false;
-    port = static_cast<uint16_t>(p);
-    return true;
-}
-
 int main(int argc, char** argv) {
     std::cout << "BABYBITCOIN IGNITE\n";
 
     // --- CLI (optional) ---
     uint16_t listen_port = 18444;
-    std::vector<std::pair<std::string,uint16_t>> peers;
+    std::vector<PeerAddress> peers;
+
     // starting on arg 1 bc arg 0 is program name
     for (int i=1;i<argc;i++) {
         std::string a = argv[i];
         if (a == "--port" && i+1 < argc) {
             listen_port = static_cast<uint16_t>(std::stoi(argv[++i]));
         } else if (a == "--connect" && i+1 < argc) {
-            std::string host; uint16_t port{};
-            // we should create a peer type {host, port}
-            // parse connect creates these... and assings them to the variables IMPLICITLY - NOT cleearn
-            if (parse_connect(argv[++i], host, port)) peers.push_back({host, port});
+            std::string arg = argv[++i];
+            PeerAddress peer;
+            
+            auto pos = arg.find(':');
+
+            peer.host = arg.substr(0, pos);
+            peer.port = static_cast<uint16_t>(std::stoi(arg.substr(pos+1)));
+            peers.push_back(peer);
+            
         } else {
             std::cerr << "Unknown arg: " << a << "\n";
         }
@@ -69,7 +65,7 @@ int main(int argc, char** argv) {
     cfg.demo_tx_to_send = 5;         // send 5 demo TXs
     cfg.demo_ms_between = 800;       // ~0.8s apart
     cfg.listen_port = listen_port;
-    for (auto& pr : peers) cfg.peers.push_back({pr.first, pr.second});
+    for (auto& peer : peers) cfg.peers.push_back(peer);
     if (!p2p.start(cfg)) {
         std::cerr << "Failed to start P2P node on port " << listen_port << "\n";
         return 1;

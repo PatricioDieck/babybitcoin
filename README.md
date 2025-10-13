@@ -1,3 +1,14 @@
+run:
+
+make run
+
+peer1:
+./babycoin --port 18445 --connect 127.0.0.1:18444
+
+peer2:
+./babycoin --port 18446 --connect 127.0.0.1:18444
+
+
 # Purpose & Specification
 
 The goal of this project is to **develop a clear, working mental model of Bitcoin’s design and codebase** by re-implementing the system described in the 2008 whitepaper, step by step, in **minimal C++**.
