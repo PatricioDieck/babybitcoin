@@ -52,6 +52,8 @@ int main(int argc, char** argv) {
             listen_port = static_cast<uint16_t>(std::stoi(argv[++i]));
         } else if (a == "--connect" && i+1 < argc) {
             std::string host; uint16_t port{};
+            // we should create a peer type {host, port}
+            // parse connect creates these... and assings them to the variables IMPLICITLY - NOT cleearn
             if (parse_connect(argv[++i], host, port)) peers.push_back({host, port});
         } else {
             std::cerr << "Unknown arg: " << a << "\n";
@@ -100,7 +102,7 @@ int main(int argc, char** argv) {
 
     // --- Spend from genesis to Alice (signed before gossip) ---
     Transaction spend;
-    
+
     TxIn in0; in0.prevout = OutPoint{ coinbase_tx.txid(), 0 };
     spend.vin.push_back(in0);
 

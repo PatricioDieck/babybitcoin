@@ -9,5 +9,8 @@ all:
 clean:
 	rm -f babycoin
 
+run:
+	./babycoin
+
 install-deps:
 	brew install openssl
