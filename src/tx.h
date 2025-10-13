@@ -31,6 +31,9 @@ struct Transaction {
   Hash256 txid() const; // dbl_sha256(serialized bytes)
 };
 
+// this creates the block subsidy- coinbase transaction- doesn't have an input and goes before the first transaction in the block
+Transaction make_coinbase(const Bytes& miner_pub, int64_t reward, const Bytes& arbitrary);
+
 // Build scriptSig (unlocking, ownership-proving script) for P2PKH: <sig DER + 0x01 SIGHASH_ALL> <pubkey>
 Bytes build_p2pkh_scriptSig(const Bytes& sig_der, const Bytes& pub);
 

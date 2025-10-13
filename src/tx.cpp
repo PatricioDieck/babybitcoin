@@ -42,6 +42,21 @@ Hash256 Transaction::txid() const {
   return dbl_sha256(serialize());
 }
 
+// This is the first transaction- basically the block subsidy
+Transaction make_coinbase(const Bytes& miner_pub, int64_t reward, const Bytes& arbitrary) {
+  Transaction tx;
+  TxIn in;
+  in.prevout  = OutPoint{Hash256{}, 0xffffffff};
+  in.scriptSig = arbitrary;
+  tx.vin.push_back(in);
+
+  TxOut out;
+  out.value = reward;
+  out.scriptPubKey = p2pkh_script(miner_pub);
+  tx.vout.push_back(out);
+  return tx;
+}
+
 Bytes build_p2pkh_scriptSig(const Bytes& sig_der, const Bytes& pub) {
   Bytes s;
   // push sig+hashtype (DER || 0x01)

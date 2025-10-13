@@ -16,20 +16,6 @@ static std::string hex_hash(const Hash256& h) {
     return hex(be);
   }
 
-static Transaction make_coinbase_tx ( const Bytes &miner_pubkey, int64_t reward, const Bytes &arbitrary) {
-    Transaction tx;
-    TxIn in;
-    in.prevout = OutPoint{Hash256{}, 0xffffffff};
-    in.scriptSig = arbitrary;
-    tx.vin.push_back(in);
-
-    TxOut out;
-    out.value = reward;
-    out.scriptPubKey = p2pkh_script(miner_pubkey);
-    tx.vout.push_back(out);
-
-    return tx;
-}
 
 int main() {
     try{
@@ -43,7 +29,7 @@ int main() {
 
         // 2) build a minimal coinbase tx paying miner (50 BTC)
         constexpr int64_t COIN = 100'000'000;
-        Transaction coinbase = make_coinbase_tx(miner.pub, 50*COIN, Bytes{0x01,0x02,0x03});
+        Transaction coinbase = make_coinbase(miner.pub, 50*COIN, Bytes{0x01,0x02,0x03});
         Hash256 cb_txid = coinbase.txid();
         std::cout << "Coinbase txid:" << hex_hash(cb_txid) << "\n";
 
@@ -117,7 +103,7 @@ int main() {
         b1.header.bits = 18;
         
          // Block 2: Spend transaction with its own coinbase  
-        Transaction coinbase2 = make_coinbase_tx(miner.pub, 50*COIN, Bytes{0x04,0x05,0x06});
+        Transaction coinbase2 = make_coinbase(miner.pub, 50*COIN, Bytes{0x04,0x05,0x06});
         b1.vtx.push_back(coinbase2);  // Must have coinbase first
         b1.vtx.push_back(spend);
 

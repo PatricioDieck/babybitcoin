@@ -14,21 +14,6 @@
 #include <chrono>
 
 
-
-static Transaction make_coinbase(const Bytes& miner_pub, int64_t reward, const Bytes& arbitrary) {
-    Transaction tx;
-    TxIn in;
-    in.prevout  = OutPoint{Hash256{}, 0xffffffff};
-    in.scriptSig = arbitrary;
-    tx.vin.push_back(in);
-
-    TxOut out;
-    out.value = reward;
-    out.scriptPubKey = p2pkh_script(miner_pub);
-    tx.vout.push_back(out);
-    return tx;
-}
-
 int main(int argc, char** argv) {
     std::cout << "BABYBITCOIN IGNITE\n";
 
