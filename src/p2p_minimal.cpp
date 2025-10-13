@@ -40,11 +40,17 @@ int P2PNode::tcp_listen_(uint16_t port) {
   return fd;
 }
 int P2PNode::tcp_accept_(int listen_fd, std::string& out_addr) {
-  sockaddr_in ca{}; socklen_t len=sizeof(ca);
-  int fd = ::accept(listen_fd,(sockaddr*)&ca,&len);
-  if (fd<0) return -1;
-  char ip[64]; ::inet_ntop(AF_INET, &ca.sin_addr, ip, sizeof(ip));
-  out_addr = std::string(ip) + ":" + std::to_string(ntohs(ca.sin_port));
+  sockaddr_in client_address{}; 
+  socklen_t len=sizeof(client_address); 
+
+  // accept the connection- file descriptor of the new connection
+  int fd = ::accept(listen_fd, (sockaddr*)&client_address, &len);
+  if (fd<0) return -1; // if the connection fails, return -1
+  char ip[64]; // ip address
+  ::inet_ntop(AF_INET, &client_address.sin_addr, ip, sizeof(ip)); // convert the address to a string
+
+  // HIDDEN SIDE EFFECT: convert the address to a string
+  out_addr = std::string(ip) + ":" + std::to_string(ntohs(client_address.sin_port));
   return fd;
 }
 int P2PNode::tcp_connect_(const std::string& host, uint16_t port) {
@@ -70,10 +76,10 @@ bool P2PNode::recv_frame_(int fd, MsgHeader& h, Bytes& payload) {
   if (h.magic != NET_MAGIC) return false;
 
   // optional guardrails: cap payload size (non-consensus)
-  const uint32_t MAX_TX = 1'000'000;
-  const uint32_t MAX_BLOCK = 4'000'000;
-  if (h.type == (uint8_t)MsgType::TX    && h.length_le > MAX_TX)    return false;
-  if (h.type == (uint8_t)MsgType::BLOCK && h.length_le > MAX_BLOCK) return false;
+  // const uint32_t MAX_TX = 1'000'000;
+  // const uint32_t MAX_BLOCK = 4'000'000;
+  // if (h.type == (uint8_t)MsgType::TX    && h.length_le > MAX_TX)    return false;
+  // if (h.type == (uint8_t)MsgType::BLOCK && h.length_le > MAX_BLOCK) return false;
 
   payload.resize(h.length_le);
   if (h.length_le && !read_n_(fd, payload.data(), payload.size())) return false;
@@ -230,6 +236,7 @@ void P2PNode::stop() {
 
 // -------------- Public broadcasts --------------
 
+// local bc we originated (no validation)- relay is in dispatch_
 void P2PNode::broadcast_local_tx(const Transaction& tx) {
   const auto key = be_hex_key_(tx.txid());
   std::lock_guard<std::mutex> lock(mtx_);
@@ -254,13 +261,19 @@ void P2PNode::broadcast_local_block(const Block& b) {
 
 void P2PNode::io_loop_() {
   while (running_.load()) {
-    fd_set rfds; FD_ZERO(&rfds);
+    fd_set rfds; 
+    FD_ZERO(&rfds);
     int maxfd = -1;
-
-    std::vector<int> idxs; idxs.reserve(peers_.size());
+  
+    // this is the list of indexes of the peers
+    std::vector<int> idxs; 
+    idxs.reserve(peers_.size());
     {
       std::lock_guard<std::mutex> lock(mtx_);
-      if (listen_fd_ >= 0) { FD_SET(listen_fd_, &rfds); maxfd = std::max(maxfd, listen_fd_); }
+      if (listen_fd_ >= 0) { 
+        FD_SET(listen_fd_, &rfds); 
+        maxfd = std::max(maxfd, listen_fd_); 
+      }
       for (size_t i=0;i<peers_.size();++i) {
         FD_SET(peers_[i].fd, &rfds);
         maxfd = std::max(maxfd, peers_[i].fd);
@@ -269,9 +282,11 @@ void P2PNode::io_loop_() {
     }
 
     timeval tv{ select_timeout_ms_/1000, (select_timeout_ms_%1000)*1000 };
+    // rv stands for return value
     int rv = select(maxfd+1, &rfds, nullptr, nullptr, &tv);
     if (rv <= 0) { maybe_send_demo_tx_(); continue; }
 
+    // if the listen fd is set, accept an inbound connection
     if (listen_fd_ >= 0 && FD_ISSET(listen_fd_, &rfds)) accept_inbound_();
 
     for (int idx : idxs) {
@@ -297,16 +312,18 @@ void P2PNode::accept_inbound_() {
 }
 
 bool P2PNode::handle_peer_io_(size_t idx) {
-  if (idx >= peers_.size()) return false;
-  Peer& p = peers_[idx];
-  MsgHeader h; Bytes pl;
-  if (!recv_frame_(p.fd, h, pl)) {
-    LOG("peer closed " << p.address);
-    close_fd_(p.fd);
+  if (idx >= peers_.size()) return false;  // ← Peer doesn't exist
+  Peer& peer = peers_[idx]; // ← Get peer
+  MsgHeader header; 
+  Bytes payload; 
+  if (!recv_frame_(peer.fd, header, payload)) {
+    LOG("recieve failed, peer closed " << peer.address);
+    close_fd_(peer.fd);
     peers_.erase(peers_.begin()+idx);
     return false;
   }
-  dispatch_(p, h, pl);
+  // dispatch the message to the peer
+  dispatch_(peer, header, payload);
   return true;
 }
 
@@ -314,7 +331,7 @@ bool P2PNode::handle_peer_io_(size_t idx) {
 
 void P2PNode::send_version_(Peer& p) {
   Bytes payload;
-  write_u32_le(payload, 1);               // protocol version
+  write_u32_le(payload, 1);   // protocol version
   write_u32_le(payload, chain_.height()); // info only
   LOG("→ VERSION to " << p.address << " (height=" << chain_.height() << ")");
   send_frame_(p.fd, MsgType::VERSION, payload);
@@ -350,7 +367,13 @@ void P2PNode::dispatch_(Peer& p, const MsgHeader& h, const Bytes& payload) {
       mempool_.push_back(tx); // optional
       Bytes pl = tx.serialize();
       size_t fan=0;
-      for (auto& q : peers_) if (q.handshaked && q.fd != p.fd) { send_frame_(q.fd, MsgType::TX, pl); fan++; }
+
+      for (auto& q : peers_) if (q.handshaked && q.fd != p.fd) { 
+        // send the tx to all other peers
+        send_frame_(q.fd, MsgType::TX, pl); 
+        fan++; 
+      }
+
       if (fan) LOG("  relayed TX to " << fan << " peer(s)");
       break;
     }
@@ -372,7 +395,13 @@ void P2PNode::dispatch_(Peer& p, const MsgHeader& h, const Bytes& payload) {
         }
         Bytes pl = b.serialize();
         size_t fan=0;
-        for (auto& q : peers_) if (q.handshaked && q.fd != p.fd) { send_frame_(q.fd, MsgType::BLOCK, pl); fan++; }
+
+        for (auto& q : peers_) if (q.handshaked && q.fd != p.fd) { 
+          // send the block to all other peers
+          send_frame_(q.fd, MsgType::BLOCK, pl); 
+          fan++; 
+        }
+
         if (fan) LOG("  relayed BLOCK to " << fan << " peer(s)");
       } else {
         LOG("  block rejected by chainstate");

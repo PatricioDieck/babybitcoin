@@ -488,3 +488,30 @@ Modules inside of the project:
 - tip_hash(): Hash256
 - balance_for_pubkey(): int64_t
 - accept_block(): bool
+
+
+---
+
+# What to do now 
+
+## This is really tough 
+
+- i am currently in a lul on what to do next. what follow are my speculation on the next steps 
+  - implement **UI client** that executes the TX
+  - create **constant mining state**
+    - be **transaction aware ** 
+  - enforce the new-block, **miner subsidy every ten minutes **
+    - save chain **checkpoints** in local dir + fetch on startup
+    - get this shit to run on my computer and make a little RN client wallet
+
+maybe make tests 
+- **printing all the data** as it gets passed around the chain 
+- print the **chain** that gets saved on checkpoint 
+
+maybe control the program **from the CLI** 
+- **terminal** that enables transactions 
+  - check balances 
+  - create wallets w names  
+  - sign txs
+
+maybe **read the whitepaper again**
