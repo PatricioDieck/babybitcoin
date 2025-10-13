@@ -446,4 +446,45 @@ Your approach follows **"Pragmatic Modularity"** rather than dogmatic separation
 - **Purpose matters**: Utilities should be pure functions with no business logic
 - **Stability matters**: Common utilities should be the most stable part of your codebase
 
-good software design!
+---
+
+Modules inside of the project:
+
+# Object Structure Quick Reference
+
+## Transaction
+- version: int32_t
+- vin: vector<TxIn>
+- vout: vector<TxOut>  
+- locktime: uint32_t
+
+## TxIn (Transaction Input)
+- prevout: OutPoint
+  - txid: Hash256 (32 bytes)
+  - index: uint32_t
+- scriptSig: Bytes (unlocking script)
+- sequence: uint32_t
+
+## TxOut (Transaction Output)
+- value: int64_t (satoshis)
+- scriptPubKey: Bytes (locking script)
+
+## Block
+- header: BlockHeader
+  - version, prev_block, merkle_root, timestamp, bits, nonce
+- vtx: vector<Transaction>
+
+## P2PConfig
+- listen_port: uint16_t
+- peers: vector<PeerAddress>
+  - host: string
+  - port: uint16_t
+- demo_mode: bool
+- demo_tx_to_send: int
+- demo_ms_between: int
+
+## ChainState
+- height(): uint32_t
+- tip_hash(): Hash256
+- balance_for_pubkey(): int64_t
+- accept_block(): bool
