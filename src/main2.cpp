@@ -19,11 +19,35 @@
 int main(int argc, char** argv) {
     std::cout << "BABYBITCOIN IGNITE\n";
 
-    // --- CLI (optional) ---
-    P2PConfig cfg = parse_command_line(argc, argv);
+   // Check if user wants interactive mode
+   bool interactive_mode = false;
+   for (int i = 1; i < argc; i++) {
+       if (std::string(argv[i]) == "--interactive" ) {
+           interactive_mode = true;
+           break;
+       }
+   }
+   
+   if (interactive_mode) {
+       // Interactive CLI mode
+       ChainState cs;
+       P2PConfig cfg = parse_command_line(argc, argv);
+       P2PNode p2p(cs);
+       
+       if (!p2p.start(cfg)) {
+           std::cerr << "Failed to start P2P node\n";
+           return 1;
+       }
+       
+       run_interactive_cli(cs, p2p);
+       return 0;
+   }
 
+    
     // --- Chain + P2P ---
     ChainState cs;
+    // --- CLI (optional) ---
+    P2PConfig cfg = parse_command_line(argc, argv);
 
     P2PNode p2p(cs);
     if (!p2p.start(cfg)) {

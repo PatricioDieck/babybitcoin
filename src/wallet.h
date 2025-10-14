@@ -8,8 +8,10 @@ class Wallet {
     std::string name; 
     Bytes adress;
 
-
+public:
     bool create_wallet(std::string name);
+
+    static bool delete_wallet(std::string name);
 
 
 
