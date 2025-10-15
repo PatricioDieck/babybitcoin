@@ -18,48 +18,29 @@
 
 int main(int argc, char** argv) {
     std::cout << "BABYBITCOIN IGNITE\n";
-
-   // Check if user wants interactive mode
-   bool interactive_mode = false;
-   for (int i = 1; i < argc; i++) {
-       if (std::string(argv[i]) == "--interactive" || std::string(argv[i]) == "-i") {
-           interactive_mode = true;
-           break;
-       }
-   }
-   
-   if (interactive_mode) {
-       // Interactive CLI mode
-       ChainState cs;
-       P2PConfig cfg = parse_command_line(argc, argv);
-       P2PNode p2p(cs);
-       
-       if (!p2p.start(cfg)) {
-           std::cerr << "Failed to start P2P node\n";
-           return 1;
-       }
-       
-       run_interactive_cli(cs, p2p);
-       return 0;
-   }
-
     
-    // --- Chain + P2P ---
+    constexpr int64_t COIN = 100'000'000;
+
     ChainState cs;
-    // --- CLI (optional) ---
     P2PConfig cfg = parse_command_line(argc, argv);
 
-    P2PNode p2p(cs);
-    if (!p2p.start(cfg)) {
-        std::cerr << "Failed to start P2P node on port " << cfg.listen_port << "\n";
-        return 1;
-    }
+    // P2PNode p2p(cs);
+    // if (!p2p.start(cfg)) {
+    //     std::cerr << "Failed to start P2P node on port " << cfg.listen_port << "\n";
+    //     return 1;
+    // }
 
-    // --- Genesis (coinbase -> miner) ---
-    KeyPair miner = generate_keypair();
-    KeyPair alice = generate_keypair();
+    // --- create the wallets  ---
+    if(!Wallet::create_wallet("miner")){
+        std::cout << "miner wallet failed to be created";
+    };
 
-    constexpr int64_t COIN = 100'000'000;
+    if(!Wallet::create_wallet("alice")){
+        std::cout << "Alice's wallet failed to be created";
+    };
+
+    KeyPair miner = Wallet::load_wallet("miner");
+    KeyPair alice = Wallet::load_wallet("alice");
 
     Transaction coinbase_tx = make_coinbase(miner.pub, 50 * COIN, Bytes{0x01,0x02,0x03});
 
@@ -75,10 +56,36 @@ int main(int argc, char** argv) {
 
     bool accepted = cs.accept_block(genesis);
     std::cout << "Genesis accepted: " << (accepted ? "YES" : "NO") << "\n";
-    if (accepted) p2p.broadcast_local_block(genesis);
+    // if (accepted) p2p.broadcast_local_block(genesis);
 
     std::cout << "miner balance: " << cs.balance_for_pubkey(miner.pub) << "\n";
     std::cout << "alice balance: " << cs.balance_for_pubkey(alice.pub) << "\n";
+
+   // Check if user wants interactive mode
+   bool interactive_mode = false;
+   for (int i = 1; i < argc; i++) {
+       if (std::string(argv[i]) == "--interactive" || std::string(argv[i]) == "-i") {
+           interactive_mode = true;
+           break;
+       }
+   }
+   
+   if (interactive_mode) {
+       // Interactive CLI mode
+       P2PConfig cfg = parse_command_line(argc, argv);
+       P2PNode p2p(cs);
+       
+       if (!p2p.start(cfg)) {
+           std::cerr << "Failed to start P2P node\n";
+           return 1;
+       }
+       
+       run_interactive_cli(cs, p2p);
+       return 0;
+   }
+
+    
+
 
     // --- Spend from genesis to Alice (signed before gossip) ---
     Transaction spend;
@@ -100,7 +107,7 @@ int main(int argc, char** argv) {
     std::cout << "Spend valid (local sanity): " << (ok ? "YES" : "NO") << "\n";
 
     // Gossip the signed transaction (no validation at P2P)
-    p2p.broadcast_local_tx(spend);
+    // p2p.broadcast_local_tx(spend);
 
     // --- Next block with new coinbase + spend ---
     Transaction coinbase2 = make_coinbase(miner.pub, 50 * COIN, Bytes{0x04,0x05,0x06});
@@ -118,7 +125,7 @@ int main(int argc, char** argv) {
 
     bool accepted1 = cs.accept_block(block1);
     std::cout << "Block1 accepted: " << (accepted1 ? "YES" : "NO") << "\n";
-    if (accepted1) p2p.broadcast_local_block(block1);
+    // if (accepted1) p2p.broadcast_local_block(block1);
 
     std::cout << "Balances after Block1:\n";
     std::cout << "  miner: " << cs.balance_for_pubkey(miner.pub) << "\n";

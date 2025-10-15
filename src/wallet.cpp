@@ -18,8 +18,8 @@ bool Wallet::create_wallet(std::string name) {
     
     nlohmann::json wallet_json;
     wallet_json["name"] = name;
-    wallet_json["private_key"] = keys.priv;
-    wallet_json["public_key"] = keys.pub;
+    wallet_json["private_key"] = hex(keys.priv);
+    wallet_json["public_key"] = hex(keys.pub);
     wallet_json["address"] = address;
 
     if (std::filesystem::exists("wallets/" + name + ".json")) { 
@@ -70,6 +70,7 @@ KeyPair Wallet::load_wallet(std::string name ) {
     Bytes pub = from_hex(wallet_json["public_key"]);
     
     KeyPair keys;
+    
     keys.priv = priv;
     keys.pub = pub;
     return keys;
