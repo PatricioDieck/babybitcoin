@@ -55,7 +55,7 @@ public:
 
   // App-level broadcasts when *you* originate local data:
   void broadcast_local_tx(const Transaction& tx);   // no validation
-  void broadcast_local_block(const Block& b);       // after you accept_block()
+  void broadcast_local_block(const Block& b); // after you accept_block()
 
   ChainState& chain() { return chain_; }
 

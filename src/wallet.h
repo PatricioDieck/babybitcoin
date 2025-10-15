@@ -2,6 +2,7 @@
 
 
 #include "crypto.h"
+#include <string>
 
 class Wallet {
     KeyPair keys;
@@ -13,9 +14,8 @@ public:
 
     static bool delete_wallet(std::string name);
 
-
-
-
+    // return keys to transact with them
+    static KeyPair load_wallet(std::string name);
 };
 
 /*

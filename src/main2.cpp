@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
    // Check if user wants interactive mode
    bool interactive_mode = false;
    for (int i = 1; i < argc; i++) {
-       if (std::string(argv[i]) == "--interactive" ) {
+       if (std::string(argv[i]) == "--interactive" || std::string(argv[i]) == "-i") {
            interactive_mode = true;
            break;
        }

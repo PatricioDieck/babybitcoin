@@ -15,6 +15,22 @@ enum class Command {
     UNKNOWN
 };
 
+/*
+ client capabilities - things that the client should be able to do 
+
+
+- execute transaction
+    - 
+
+
+
+- check balance 
+
+
+^^^ we need to disconnect these functionalities from CLI 
+    - make transaction -> assemble inputs, outputs, prompt signing, add to blockchain (local or global )    
+*/
+
 Command parse_command(const std::string& input) {
     if (input == "wallet" || input == "w") return Command::WALLET_CREATE;
     if (input == "delete" || input == "d") return Command::WALLET_DELETE;
@@ -29,8 +45,7 @@ Command parse_command(const std::string& input) {
 
 
 
-void execute_command(Command cmd, const std::vector<std::string>& args, 
-                    ChainState& cs, P2PNode& p2p) {
+void execute_command(Command cmd, const std::vector<std::string>& args, ChainState& cs, P2PNode& p2p) {
     try {
         switch (cmd) {
             case Command::WALLET_CREATE: {
@@ -41,40 +56,40 @@ void execute_command(Command cmd, const std::vector<std::string>& args,
                 Wallet wallet;
                 bool success = wallet.create_wallet(args[1]);
                 if (success) {
-                    std::cout << "Wallet created " + args[1] + " successfully\n";
+                    std::cout << "Wallet `" + args[1] + "` created successfully\n";
                 } else {
-                    std::cout << "Failed to create wallet " + args[1] + "\n";
+                    std::cout << "Failed to create wallet `" + args[1] + "`\n";
                 }
                 break;
             }
 
             case Command::WALLET_DELETE: {                
-                std::cout << "Are you sure you want to delete wallet " + args[1] + "? (y/n)\n";
+                std::cout << "Are you sure you want to delete wallet `" + args[1] + "`? (y/n)\n";
                 std::string confirm;
                 std::cin >> confirm;
                 if (confirm != "y") {
-                    std::cout << "Wallet delete command " + args[1] + " cancelled\n";
+                    std::cout << "Wallet delete command `" + args[1] + "` cancelled\n";
                     break;
                 }
                 bool success = Wallet::delete_wallet(args[1]);
                 if (success) {
-                    std::cout << "Wallet deleted " + args[1] + " successfully\n";
+                    std::cout << "Wallet deleted `" + args[1] + "` successfully\n";
                 } else {
-                    std::cout << "Failed to delete wallet " + args[1] + "\n";
+                    std::cout << "Failed to delete wallet `" + args[1] + "`\n";
                 }
                 break;
             }
             
-            // case Command::BALANCE: {
-            //     if (args.size() < 2) {
-            //         std::cout << "Usage: balance <wallet_name>\n";
-            //         break;
-            //     }
-            //     KeyPair wallet = load_wallet(args[1]);
-            //     int64_t balance = cs.balance_for_pubkey(wallet.pub);
-            //     std::cout << "Balance: " << balance / 100000000.0 << " BTC\n";
-            //     break;
-            // }
+            case Command::BALANCE: {
+                if (args.size() < 2) {
+                    std::cout << "Usage: balance <wallet_name>\n";
+                    break;
+                }
+                KeyPair keys = Wallet::load_wallet(args[1]);
+                int64_t balance = cs.balance_for_pubkey(keys.pub);
+                std::cout << "Balance: " << balance << " BBTC\n";
+                break;
+            }
             
             // case Command::SEND: {
             //     std::cout << "Send command not implemented yet\n";
@@ -141,9 +156,7 @@ P2PConfig parse_command_line(int argc, char** argv) {
          } else if (a.find("help" ) != std::string::npos) {
              system("cat README.md"); 
              std::exit(0);
-         } else {
-             std::cerr << "Unknown arg: " << a << "\n";
-         }
+         } 
      }
      return cfg;
  }
