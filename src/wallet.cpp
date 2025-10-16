@@ -40,15 +40,7 @@ bool Wallet::create_wallet(std::string name) {
 }
 
 bool Wallet::delete_wallet(std::string name ){
-
-    // delete the wallet from the wallets directory
-    if (std::filesystem::remove("wallets/" + name + ".json")) {
-        std::cout << "Wallet '" << name << "' deleted successfully\n";
-        return true;
-    } else {
-        std::cout << "Failed to delete wallet '" << name << "'\n";
-        return false;
-    }   
+    return std::filesystem::remove("wallets/" + name + ".json");
 }
 
 KeyPair Wallet::load_wallet(std::string name ) {

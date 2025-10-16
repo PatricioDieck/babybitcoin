@@ -24,19 +24,19 @@ int main(int argc, char** argv) {
     ChainState cs;
     P2PConfig cfg = parse_command_line(argc, argv);
 
-    // P2PNode p2p(cs);
-    // if (!p2p.start(cfg)) {
-    //     std::cerr << "Failed to start P2P node on port " << cfg.listen_port << "\n";
-    //     return 1;
-    // }
+    P2PNode p2p(cs);
+    if (!p2p.start(cfg)) {
+        std::cerr << "Failed to start P2P node on port " << cfg.listen_port << "\n";
+        return 1;
+    }
 
     // --- create the wallets  ---
     if(!Wallet::create_wallet("miner")){
-        std::cout << "miner wallet failed to be created";
+        std::cout << "miner wallet failed to be created \n";
     };
 
     if(!Wallet::create_wallet("alice")){
-        std::cout << "Alice's wallet failed to be created";
+        std::cout << "Alice's wallet failed to be created\n";
     };
 
     KeyPair miner = Wallet::load_wallet("miner");
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 
     bool accepted = cs.accept_block(genesis);
     std::cout << "Genesis accepted: " << (accepted ? "YES" : "NO") << "\n";
-    // if (accepted) p2p.broadcast_local_block(genesis);
+    if (accepted) p2p.broadcast_local_block(genesis);
 
     std::cout << "miner balance: " << cs.balance_for_pubkey(miner.pub) << "\n";
     std::cout << "alice balance: " << cs.balance_for_pubkey(alice.pub) << "\n";

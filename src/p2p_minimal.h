@@ -37,7 +37,7 @@ struct P2PConfig {
   int select_timeout_ms = 250;
 
   // Demo mode (optional): auto-send a couple TXs so you can see logs flowing.
-  bool demo_mode = false;
+  bool demo_mode = true;
   int  demo_tx_to_send = 3;          // total demo TXs to originate
   int  demo_ms_between = 1000;       // delay between demo TXs
 };

@@ -56,26 +56,26 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
                 Wallet wallet;
                 bool success = wallet.create_wallet(args[1]);
                 if (success) {
-                    std::cout << "Wallet `" + args[1] + "` created successfully\n";
+                    std::cout << "Wallet '" + args[1] + "' created successfully\n";
                 } else {
-                    std::cout << "Failed to create wallet `" + args[1] + "`\n";
+                    std::cout << "Failed to create wallet '" + args[1] + "'\n";
                 }
                 break;
             }
 
             case Command::WALLET_DELETE: {                
-                std::cout << "Are you sure you want to delete wallet `" + args[1] + "`? (y/n)\n";
+                std::cout << "Are you sure you want to delete wallet '" + args[1] + "'? (y/n)\n";
                 std::string confirm;
                 std::cin >> confirm;
                 if (confirm != "y") {
-                    std::cout << "Wallet delete command `" + args[1] + "` cancelled\n";
+                    std::cout << "Wallet delete command '" + args[1] + "' cancelled\n";
                     break;
                 }
                 bool success = Wallet::delete_wallet(args[1]);
                 if (success) {
-                    std::cout << "Wallet deleted `" + args[1] + "` successfully\n";
+                    std::cout << "Wallet deleted '" + args[1] + "' successfully\n";
                 } else {
-                    std::cout << "Failed to delete wallet `" + args[1] + "`\n";
+                    std::cout << "Failed to delete wallet '" + args[1] + "'\n";
                 }
                 break;
             }
