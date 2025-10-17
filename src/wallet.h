@@ -1,22 +1,64 @@
 
 
+#pragma once
+#include <string>
+#include <vector>
+#include <optional>
+#include <filesystem>
 
 #include "crypto.h"
-#include <string>
+#include "common.h"
 
-class Wallet {
+// simple value object holding a keypair and friendly name
+// address is derived (not stored) to avoid inconsistency
+struct Wallet {
+    std::string name;
     KeyPair keys;
-    std::string name; 
-    Bytes adress;
-
-public:
-    static bool create_wallet(std::string name);
-
-    static bool delete_wallet(std::string name);
-
-    // return keys to transact with them
-    static KeyPair load_wallet(std::string name);
 };
+
+// persistence and lookup for wallets in a directory
+class WalletStore{
+    public:
+
+    explicit WalletStore(std::filesystem::path dir="wallets");
+
+    // create a new wallet file (fail if it exists)
+    // return created Wallet on success
+    Wallet create_wallet(const std::string& name);
+
+    // load existing wallet (name-> file). null if not found
+    Wallet load_wallet(const std::string& name) const;
+
+    // delete wallet. return true if removed.
+    bool remove_wallet(std::string name) const;
+
+    //list known wallet names (best-effort)
+    std::vector<std::string> list_wallets() const;
+
+    // dev-friendly "address" as hex(HASH160(pub))
+    // consider Base58Check later.
+    static std::string address_hex(const Bytes& pub);
+
+private:    
+    std::filesystem::path dir_;
+    // static bool valid_name(const std::string& name);
+    // std::filesystem::path file_for(const std::string& name) const;
+};
+
+
+// class Wallet {
+//     KeyPair keys;
+//     std::string name; 
+//     Bytes adress;
+
+// public:
+//     static bool create_wallet(std::string name);
+
+//     static bool delete_wallet(std::string name);
+
+//     // return keys to transact with them
+//     static KeyPair load_wallet(std::string name);
+// };
 
 /*
 

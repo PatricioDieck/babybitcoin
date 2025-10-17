@@ -30,19 +30,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // --- create the wallets  ---
-    if(!Wallet::create_wallet("miner")){
-        std::cout << "miner wallet failed to be created \n";
-    };
+    WalletStore ws;
+    Wallet miner = ws.create_wallet("miner");
+    Wallet alice = ws.create_wallet("alice");
 
-    if(!Wallet::create_wallet("alice")){
-        std::cout << "Alice's wallet failed to be created\n";
-    };
-
-    KeyPair miner = Wallet::load_wallet("miner");
-    KeyPair alice = Wallet::load_wallet("alice");
-
-    Transaction coinbase_tx = make_coinbase(miner.pub, 50 * COIN, Bytes{0x01,0x02,0x03});
+    Transaction coinbase_tx = make_coinbase(miner.keys.pub, 50 * COIN, Bytes{0x01,0x02,0x03});
 
     Block genesis;
     genesis.header.version     = 1;
@@ -58,8 +50,8 @@ int main(int argc, char** argv) {
     std::cout << "Genesis accepted: " << (accepted ? "YES" : "NO") << "\n";
     if (accepted) p2p.broadcast_local_block(genesis);
 
-    std::cout << "miner balance: " << cs.balance_for_pubkey(miner.pub) << "\n";
-    std::cout << "alice balance: " << cs.balance_for_pubkey(alice.pub) << "\n";
+    std::cout << "miner balance: " << cs.balance_for_pubkey(miner.keys.pub) << "\n";
+    std::cout << "alice balance: " << cs.balance_for_pubkey(alice.keys.pub) << "\n";
 
    // Check if user wants interactive mode
    bool interactive_mode = false;
@@ -73,19 +65,16 @@ int main(int argc, char** argv) {
    if (interactive_mode) {
        // Interactive CLI mode
        P2PConfig cfg = parse_command_line(argc, argv);
-       P2PNode p2p(cs);
+    //    P2PNode p2p(cs);
        
-       if (!p2p.start(cfg)) {
-           std::cerr << "Failed to start P2P node\n";
-           return 1;
-       }
+    //    if (!p2p.start(cfg)) {
+    //        std::cerr << "Failed to start P2P node\n";
+    //        return 1;
+    //    }
        
        run_interactive_cli(cs, p2p);
        return 0;
    }
-
-    
-
 
     // --- Spend from genesis to Alice (signed before gossip) ---
     Transaction spend;
@@ -93,15 +82,20 @@ int main(int argc, char** argv) {
     TxIn in0; in0.prevout = OutPoint{ coinbase_tx.txid(), 0 };
     spend.vin.push_back(in0);
 
-    TxOut to_alice; to_alice.value = 4 * COIN; to_alice.scriptPubKey = p2pkh_script(alice.pub);
-    TxOut change;   change.value   = 1 * COIN; change.scriptPubKey   = p2pkh_script(miner.pub);
+    TxOut to_alice; 
+    to_alice.value = 4 * COIN; 
+    to_alice.scriptPubKey = p2pkh_script(alice.keys.pub);
+    
+    TxOut change;   
+    change.value   = 1 * COIN; 
+    change.scriptPubKey   = p2pkh_script(miner.keys.pub);
     spend.vout.push_back(to_alice);
     spend.vout.push_back(change);
 
     const Bytes prevout_spk = coinbase_tx.vout[0].scriptPubKey;
     Hash256 h = sighash_all(spend, 0, prevout_spk);
-    Bytes sig_der = ecdsa_sign(h, miner.priv);
-    spend.vin[0].scriptSig = build_p2pkh_scriptSig(sig_der, miner.pub);
+    Bytes sig_der = ecdsa_sign(h, miner.keys.priv);
+    spend.vin[0].scriptSig = build_p2pkh_scriptSig(sig_der, miner.keys.pub);
 
     bool ok = verify_p2pkh_input(spend, 0, prevout_spk);
     std::cout << "Spend valid (local sanity): " << (ok ? "YES" : "NO") << "\n";
@@ -110,7 +104,7 @@ int main(int argc, char** argv) {
     // p2p.broadcast_local_tx(spend);
 
     // --- Next block with new coinbase + spend ---
-    Transaction coinbase2 = make_coinbase(miner.pub, 50 * COIN, Bytes{0x04,0x05,0x06});
+    Transaction coinbase2 = make_coinbase(miner.keys.pub, 50 * COIN, Bytes{0x04,0x05,0x06});
 
     Block block1;
     block1.header.version     = 1;
@@ -128,8 +122,8 @@ int main(int argc, char** argv) {
     // if (accepted1) p2p.broadcast_local_block(block1);
 
     std::cout << "Balances after Block1:\n";
-    std::cout << "  miner: " << cs.balance_for_pubkey(miner.pub) << "\n";
-    std::cout << "  alice: " << cs.balance_for_pubkey(alice.pub) << "\n";
+    std::cout << "  miner: " << cs.balance_for_pubkey(miner.keys.pub) << "\n";
+    std::cout << "  alice: " << cs.balance_for_pubkey(alice.keys.pub) << "\n";
 
     // Keep node alive so peers can connect / exchange
     for (;;) std::this_thread::sleep_for(std::chrono::milliseconds(500));

@@ -1,9 +1,11 @@
 #include "p2p_minimal.h"
 #include <iostream>
+#include <vector>
 #include "wallet.h"
 
 enum class Command {
     WALLET_CREATE,
+    WALLET_LIST,
     WALLET_LOAD,
     WALLET_DELETE,
     BALANCE,
@@ -33,6 +35,7 @@ enum class Command {
 
 Command parse_command(const std::string& input) {
     if (input == "wallet" || input == "w") return Command::WALLET_CREATE;
+    if (input == "list" || input == "l") return Command::WALLET_LIST;
     if (input == "delete" || input == "d") return Command::WALLET_DELETE;
     if (input == "balance" || input == "b") return Command::BALANCE;
     if (input == "send" || input == "s") return Command::SEND;
@@ -46,6 +49,7 @@ Command parse_command(const std::string& input) {
 
 
 void execute_command(Command cmd, const std::vector<std::string>& args, ChainState& cs, P2PNode& p2p) {
+    WalletStore ws;
     try {
         switch (cmd) {
             case Command::WALLET_CREATE: {
@@ -53,12 +57,12 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
                     std::cout << "Usage: wallet <name>\n";
                     break;
                 }
-                Wallet wallet;
-                bool success = wallet.create_wallet(args[1]);
-                if (success) {
-                    std::cout << "Wallet '" + args[1] + "' created successfully\n";
-                } else {
-                    std::cout << "Failed to create wallet '" + args[1] + "'\n";
+                try {
+                Wallet new_wallet = ws.create_wallet(args[1]);
+                    std::cout << "Wallet '" + new_wallet.name + "' created successfully\n";
+                    std::cout << "Address: " << WalletStore::address_hex(new_wallet.keys.pub) << "\n";
+                } catch (const std::exception& e) {
+                    std::cout << "Error: " << e.what() << "\n";
                 }
                 break;
             }
@@ -71,30 +75,43 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
                     std::cout << "Wallet delete command '" + args[1] + "' cancelled\n";
                     break;
                 }
-                bool success = Wallet::delete_wallet(args[1]);
+                bool success = ws.remove_wallet(args[1]);
                 if (success) {
-                    std::cout << "Wallet deleted '" + args[1] + "' successfully\n";
-                } else {
-                    std::cout << "Failed to delete wallet '" + args[1] + "'\n";
-                }
-                break;
+                std::cout << "Wallet deleted '" + args[1] + "' successfully\n";
+            } else {
+                std::cout << "Failed to delete wallet '" + args[1] + "'\n";
             }
+            break;
+        }
             
             case Command::BALANCE: {
                 if (args.size() < 2) {
                     std::cout << "Usage: balance <wallet_name>\n";
                     break;
                 }
-                KeyPair keys = Wallet::load_wallet(args[1]);
-                int64_t balance = cs.balance_for_pubkey(keys.pub);
-                std::cout << "Balance: " << balance << " BBTC\n";
+                try {
+                Wallet wallet = ws.load_wallet(args[1]);
+                    int64_t balance = cs.balance_for_pubkey(wallet.keys.pub);
+                    std::cout << "Balance: " << balance << " BBTC\n";
+                } catch (const std::exception& e) {
+                    std::cout << "Error: " << e.what() << "\n";
+                }
+                break;
+            }
+            case Command::WALLET_LIST:{
+                std::vector<std::string> wallets = ws.list_wallets();
+
+                std::cout << "Wallets: " << "\n";
+                for (std::string& wallet : wallets) {
+                    std::cout << "  " + wallet + "\n";
+                }
                 break;
             }
             
-            // case Command::SEND: {
-            //     std::cout << "Send command not implemented yet\n";
-            //     break;
-            // }
+            case Command::SEND: {
+                std::cout << "Send command not implemented yet\n";
+                break;
+            }
             
             // case Command::MINE_BLOCK: {
             //     std::cout << "Mining block...\n";
@@ -111,6 +128,7 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
             case Command::HELP: {
                 std::cout << "Commands:\n";
                 std::cout << "  wallet <name>     - Create new wallet\n";
+                std::cout << "  list              - List all wallets\n";
                 std::cout << "  delete <name>     - Delete wallet\n";
                 std::cout << "  balance <name>    - Check wallet balance\n";
                 std::cout << "  send <from> <to> <amount> - Send BTC\n";
