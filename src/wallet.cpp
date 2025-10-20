@@ -22,8 +22,9 @@ std::string WalletStore::address_hex(const Bytes& pub) {
 Wallet WalletStore::create_wallet(const std::string& name) {
     auto path = dir_ / (name + ".json");
     if (std::filesystem::exists(path)) {
-        std::cerr << "Wallet exists: " << path << "\n";
-        throw std::runtime_error("Wallet already exists: " + path.string());
+        std::cout << "Wallet exists: " << path << "\n";
+        std::cout << "Loading existing wallet: " << name << "\n";
+        return WalletStore::load_wallet(name);
     }
 
     Wallet wallet;

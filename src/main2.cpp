@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
     }
 
     WalletStore ws;
+    // --- load the wallets  ---
     Wallet miner = ws.create_wallet("miner");
     Wallet alice = ws.create_wallet("alice");
 
