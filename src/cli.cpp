@@ -1,4 +1,5 @@
 #include "p2p_minimal.h"
+#include "common.h"
 #include <iostream>
 #include <vector>
 #include "wallet.h"
@@ -109,15 +110,23 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
             }
             
             case Command::SEND: {
-                std::cout << "Send command not implemented yet\n";
-                break;
+                // the command is send <from> <to<address_hex>> <amount>
+                if (args.size() < 4) {
+                    std::cout << "Usage: send <from> <to_address_hex> <amount>\n";
+                    break;
+                }
+                Transaction tx = ws.send(args[1], args[2], std::stoll(args[3]), cs);
+                std::cout << "Transaction sent: " << be_hex_key_(tx.txid()) << "\n";
+                std::cout << "Now that shits gotta get mined before you see it in the blockchain lel\n";
+                std::cout << "You can mine a block to see it in the blockchain\n";
+                std::cout << "Usage: mine\n";
+                break;  
             }
             
-            // case Command::MINE_BLOCK: {
-            //     std::cout << "Mining block...\n";
-            //     // Mine and broadcast block logic
-            //     break;
-            // }
+            case Command::MINE_BLOCK: {
+                std::cout << "Mining block...\n";
+                // Mine and broadcast block logic
+            }
             
             // case Command::STATUS: {
             //     std::cout << "Chain height: " << cs.height() << "\n";

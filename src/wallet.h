@@ -3,11 +3,12 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <optional>
 #include <filesystem>
 
 #include "crypto.h"
 #include "common.h"
+#include "tx.h"
+class ChainState;
 
 // simple value object holding a keypair and friendly name
 // address is derived (not stored) to avoid inconsistency
@@ -38,6 +39,10 @@ class WalletStore{
     // dev-friendly "address" as hex(HASH160(pub))
     // consider Base58Check later.
     static std::string address_hex(const Bytes& pub);
+
+    // Build and sign a P2PKH transaction from 'fromName' to 'toAddressHex' for 'amount'.
+    // Uses ChainState for UTXO selection; throws on insufficient funds or missing wallet.
+    Transaction send(const std::string& fromName, const std::string& toAddressHex, int64_t amount, ChainState& cs, int64_t fee = 1000);
 
 private:    
     std::filesystem::path dir_;

@@ -1,7 +1,6 @@
 #include "chain.h"
 #include "script_min.h"
 #include <cstring>
-#include <stdexcept>
 #include <iostream>
 
 // --- helpers ---
@@ -184,4 +183,31 @@ int64_t ChainState::balance_for_pubkey(const Bytes& pub) const {
     }
   }
   return sum;
+}
+
+std::vector<Coin> ChainState::gather_coins(const Bytes& pub, int64_t target) const {
+  std::vector<Coin> coins;
+  if (target <= 0) return coins;
+  Bytes want = hash160(pub);
+  int64_t acc = 0;
+  for (const auto& [key, u] : utxo_) {
+    // Only pick P2PKH that matches this pubkey
+    try {
+      Bytes h = p2pkh_hash_from_script(u.scriptPubKey);
+      if (h != want) continue;
+    } catch (...) {
+      continue; // not P2PKH
+    }
+
+    // Decode the key back to (txid, index)
+    if (key.size() != 36) continue;
+    Hash256 txid{};
+    std::memcpy(txid.data(), key.data(), 32);
+    uint32_t idx = (uint8_t)key[32] | ((uint8_t)key[33] << 8) | ((uint8_t)key[34] << 16) | ((uint8_t)key[35] << 24);
+
+    coins.push_back({OutPoint{txid, idx}, u.value, u.scriptPubKey});
+    acc += u.value;
+    if (acc >= target) break;
+  }
+  return coins;
 }

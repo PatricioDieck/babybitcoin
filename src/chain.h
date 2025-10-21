@@ -11,6 +11,12 @@ struct UTXO {
   Bytes   scriptPubKey;
 };
 
+struct Coin {
+  OutPoint prevout;      // tx.h
+  int64_t  value;
+  Bytes    scriptPubKey; // for signing/verification
+};
+
 // A tiny happy-path chainstate: one active tip, an in-memory UTXO map.
 // No forks, no disk persistence (yet). Perfect for understanding flow.
 class ChainState {
@@ -27,6 +33,11 @@ public:
 
   // Simple balance helper: sum of all UTXOs whose script matches HASH160(pub).
   int64_t balance_for_pubkey(const Bytes& pub) const;
+
+  // Gather spendable coins for a given public key (P2PKH) until reaching 'target'.
+  // Returns a vector of tuples: (txid, vout_index, value, scriptPubKey).
+  // Simple greedy scan; callers may select a prefix up to the target.
+  std::vector<Coin> gather_coins(const Bytes& pub, int64_t target) const;
 
   // Config: block subsidy (we keep it constant for happy path).
   static constexpr int64_t COIN   = 100'000'000;
