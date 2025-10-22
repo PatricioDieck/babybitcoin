@@ -3,6 +3,7 @@
 #include "chain.h"
 #include "tx.h"
 #include "script_min.h"
+#include "p2p_minimal.h"
 #include "../third_party/json.hpp"
 #include <filesystem>
 #include <fstream>
@@ -106,7 +107,6 @@ Transaction WalletStore::send(const std::string& fromName,
 
     // Decode destination address (dev: it's hex of HASH160(pub))
     Bytes to_h160 = from_hex(toAddressHex);
-    std::cout << "to_h160: " << hex(to_h160) << "\n";
     if (to_h160.size() != 20) throw std::runtime_error("toAddressHex must be 20-byte h160 hex" + std::to_string(to_h160.size()));
     std::cout << "to_h160: " << hex(to_h160) << "\n";
 
@@ -114,38 +114,36 @@ Transaction WalletStore::send(const std::string& fromName,
     int64_t target = amount + fee;
     auto coins = cs.gather_coins(fromPub, target);
     int64_t gathered = 0;
-    for (auto& c : coins) gathered += c.value;
+    for (auto& c : coins) {
+        gathered += c.value;
+        std::cout << "COIN: " << c.value << "\n";
+    }
     if (gathered < target) throw std::runtime_error("insufficient funds");
+    // std::cout << "GATHERED: " << gathered << "\n";
 
     // Build outputs: main payment + change if needed
     Transaction tx;
     int64_t used = 0;
     for (const auto& c : coins) {
       tx.vin.push_back(TxIn{ c.prevout, Bytes{}, 0xffffffff });
+      std::cout << "COIN pushed into the tx: " << c.value << "\n";
       used += c.value;
+      std::cout << "USED: " << used << "\n";
       if (used >= target) break;
     }
 
     // Payment output (to P2PKH of destination h160)
-    Bytes to_spk;
-    {
-        // Construct P2PKH script manually from h160
-        // script: OP_DUP OP_HASH160 0x14 <20B> OP_EQUALVERIFY OP_CHECKSIG
-        static constexpr uint8_t OP_DUP = 0x76, OP_HASH160 = 0xa9, OP_EQUALVERIFY = 0x88, OP_CHECKSIG = 0xac;
-        to_spk.push_back(OP_DUP);
-        to_spk.push_back(OP_HASH160);
-        to_spk.push_back(0x14);
-        to_spk.insert(to_spk.end(), to_h160.begin(), to_h160.end());
-        to_spk.push_back(OP_EQUALVERIFY);
-        to_spk.push_back(OP_CHECKSIG);
-    }
+    Bytes to_spk = build_p2pkh_script_from_h160(to_h160);
+    
     tx.vout.push_back(TxOut{amount, to_spk});
 
     // Change back to sender if any
     int64_t change = gathered - target;
+    std::cout << "CHANGE: " << change << "\n";
     if (change > 0) {
         Bytes change_spk = p2pkh_script(fromPub);
         tx.vout.push_back(TxOut{change, change_spk});
+        std::cout << "CHANGE pushed into the tx: " << change << "\n";
     }
 
     // Sign each input: need the prevout scriptPubKey for sighash
@@ -159,11 +157,29 @@ Transaction WalletStore::send(const std::string& fromName,
 
     // Final sanity: verify inputs against prevout scripts (dev check)
     for (size_t i = 0; i < tx.vin.size(); ++i) {
-        if (!verify_p2pkh_input(tx, i, prev_spk)) {
+        bool verified = verify_p2pkh_input(tx, i, prev_spk);
+        if (!verified) {
+            std::cout << "TX VERIFIED: " << (verified ? "YES" : "NO") << "\n";
             throw std::runtime_error("internal signing verification failed");
         }
     }
 
+    std::cout << "TX ID: " << be_hex_key_(tx.txid()) << "\n";
+    std::cout << "TX SIZE: " << tx.serialize().size() << "\n";
+    std::cout << "TX VIN SIZE: " << tx.vin.size() << "\n";
+    std::cout << "TX VOUT SIZE: " << tx.vout.size() << "\n";
+    
+    return tx;
+}
+
+Transaction WalletStore::send_and_broadcast(const std::string& fromName,
+                                            const std::string& toAddressHex,
+                                            int64_t amount,
+                                            ChainState& cs,
+                                            P2PNode& p2p,
+                                            int64_t fee) {
+    Transaction tx = send(fromName, toAddressHex, amount, cs, fee);
+    p2p.broadcast_local_tx(tx);
     return tx;
 }
 

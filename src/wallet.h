@@ -9,6 +9,7 @@
 #include "common.h"
 #include "tx.h"
 class ChainState;
+class P2PNode;
 
 // simple value object holding a keypair and friendly name
 // address is derived (not stored) to avoid inconsistency
@@ -43,6 +44,14 @@ class WalletStore{
     // Build and sign a P2PKH transaction from 'fromName' to 'toAddressHex' for 'amount'.
     // Uses ChainState for UTXO selection; throws on insufficient funds or missing wallet.
     Transaction send(const std::string& fromName, const std::string& toAddressHex, int64_t amount, ChainState& cs, int64_t fee = 1000);
+
+    // Convenience: build/sign then broadcast via P2P. Mining is external.
+    Transaction send_and_broadcast(const std::string& fromName,
+                                   const std::string& toAddressHex,
+                                   int64_t amount,
+                                   ChainState& cs,
+                                   P2PNode& p2p,
+                                   int64_t fee = 1000);
 
 private:    
     std::filesystem::path dir_;

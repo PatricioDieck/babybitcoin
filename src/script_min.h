@@ -9,3 +9,5 @@ Bytes p2pkh_script(const Bytes& pubkey);
 // Extract the 20-byte pubKeyHash from a P2PKH scriptPubKey. Throws if not
 // P2PKH.
 Bytes p2pkh_hash_from_script(const Bytes& scriptPubKey);
+
+Bytes build_p2pkh_script_from_h160(const Bytes& h160);

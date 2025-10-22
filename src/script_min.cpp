@@ -6,7 +6,7 @@ static constexpr uint8_t OP_DUP = 0x76, OP_HASH160 = 0xa9, OP_EQUALVERIFY = 0x88
 
 // P2PKH script from a 20-byte hash160.
 // centralizing the common script construction logic.
-static Bytes build_p2pkh_script_from_h160(const Bytes& h160) {
+Bytes build_p2pkh_script_from_h160(const Bytes& h160) {
     if (h160.size() != 20) throw std::runtime_error("h160 must be 20 bytes");
     Bytes s;
     s.push_back(OP_DUP);
