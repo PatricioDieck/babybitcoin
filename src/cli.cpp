@@ -1,4 +1,5 @@
 #include "p2p_minimal.h"
+#include "miner.h"
 #include "common.h"
 #include <iostream>
 #include <vector>
@@ -115,9 +116,8 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
                     std::cout << "Usage: send <from> <to_address_hex> <amount>\n";
                     break;
                 }
-                Transaction tx = ws.send(args[1], args[2], std::stoll(args[3]), cs);
+                Transaction tx = ws.send_and_broadcast(args[1], args[2], std::stoll(args[3]), cs, p2p);
                 std::cout << "Transaction sent: " << be_hex_key_(tx.txid()) << "\n";
-                std::cout << "Now that shits gotta get mined before you see it in the blockchain lel\n";
                 std::cout << "You can mine a block to see it in the blockchain\n";
                 std::cout << "Usage: mine\n";
                 break;  
@@ -125,14 +125,23 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
             
             case Command::MINE_BLOCK: {
                 std::cout << "Mining block...\n";
-                // Mine and broadcast block logic
+                MinerConfig mcfg;
+                mcfg.coinbase_pub = ws.load_wallet("miner").keys.pub;
+                bool mined = mine_once(cs, mcfg, p2p);
+
+                if (mined) {
+                    std::cout << "Block mined successfully\n";
+                } else {
+                    std::cout << "Failed to mine block\n";
+                }
+                break;
             }
             
-            // case Command::STATUS: {
-            //     std::cout << "Chain height: " << cs.height() << "\n";
-            //     std::cout << "Tip hash: " << hex_hash(cs.tip_hash()) << "\n";
-            //     break;
-            // }
+            case Command::STATUS: {
+                std::cout << "Chain height: " << cs.height() << "\n";
+                std::cout << "Tip hash: " << be_hex_key_(cs.tip_hash()) << "\n";
+                break;
+            }
             
             case Command::HELP: {
                 std::cout << "Commands:\n";
