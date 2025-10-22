@@ -59,6 +59,15 @@ public:
 
   ChainState& chain() { return chain_; }
 
+  // snapshot of the mempool to mine all Txs into a block
+  std::vector<Transaction> mempool_snapshot();
+
+  // Remove included txs after a block is accepted
+  void prune_mined_txs(const Block& b);
+
+  // Optional: clear entire mempool (tests/reset)
+  void clear_mempool();
+
 private:
   // --- Peer bookkeeping ---
   struct Peer {

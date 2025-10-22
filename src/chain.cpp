@@ -61,18 +61,28 @@ bool ChainState::validate_tx(const Transaction& tx, int64_t& fee) const {
 
   // Regular TX: check all inputs exist and are authorized; values balance.
   int64_t sum_in = 0;
+
   for (size_t i = 0; i < tx.vin.size(); ++i) {
     const auto& in = tx.vin[i];
     const UTXO* u = get_utxo(in.prevout.txid, in.prevout.index);
-    if (!u) return false; // double-spend or unknown input
+
+    if (!u){
+      std::cerr << "VALIDATION ERROR: Input UTXO does not exist for input- this is likely because you havent connected the inputs of your transaction to the UTXO set (unless you are using a coinbase transaction!!)" << "\n";
+      return false; // double-spend or unknown input
+    }
+    std::cout << "UTXO: " << u->value << " for input " << i << "\n";
 
     // P2PKH only (happy path)
-    if (!verify_p2pkh_input(tx, i, u->scriptPubKey)) return false;
+    if (!verify_p2pkh_input(tx, i, u->scriptPubKey)){
+      std::cerr << "VALIDATION ERROR: Input UTXO does not match the scriptPubKey of the output" << "\n";
+      return false;
+    }
 
     sum_in += u->value;
     if (sum_in < 0) return false; // overflow guard
   }
 
+  // check to see if output values are positive
   int64_t sum_out = 0;
   for (const auto& o : tx.vout) {
     if (o.value < 0) return false;
@@ -80,7 +90,10 @@ bool ChainState::validate_tx(const Transaction& tx, int64_t& fee) const {
     if (sum_out < 0) return false; // overflow guard
   }
 
+  // check to see if the input is greater than the output
   if (sum_in < sum_out) return false; // cannot create money
+
+  // calculate the fee
   fee = sum_in - sum_out;
   return true;
 }
@@ -187,13 +200,20 @@ int64_t ChainState::balance_for_pubkey(const Bytes& pub) const {
 
 std::vector<Coin> ChainState::gather_coins(const Bytes& pub, int64_t target) const {
   std::vector<Coin> coins;
-  if (target <= 0) return coins;
+  if (target <= 0) {
+    
+    std::cerr << "ERROR: target is less than 0" << "\n";
+    return coins;
+  }
   Bytes want = hash160(pub);
-  int64_t acc = 0;
-  for (const auto& [key, u] : utxo_) {
+  int64_t accumulated_value = 0;
+  for (const auto& [key, utxo] : utxo_) {
+      // Only process well-formed keys: 32B txid + 4B index
+    if (key.size() != 36) continue;
+    if (utxo.value <= 0) continue; // skip zero value UTXOs
     // Only pick P2PKH that matches this pubkey
     try {
-      Bytes h = p2pkh_hash_from_script(u.scriptPubKey);
+      Bytes h = p2pkh_hash_from_script(utxo.scriptPubKey);
       if (h != want) continue;
     } catch (...) {
       continue; // not P2PKH
@@ -205,9 +225,9 @@ std::vector<Coin> ChainState::gather_coins(const Bytes& pub, int64_t target) con
     std::memcpy(txid.data(), key.data(), 32);
     uint32_t idx = (uint8_t)key[32] | ((uint8_t)key[33] << 8) | ((uint8_t)key[34] << 16) | ((uint8_t)key[35] << 24);
 
-    coins.push_back({OutPoint{txid, idx}, u.value, u.scriptPubKey});
-    acc += u.value;
-    if (acc >= target) break;
+    coins.push_back({OutPoint{txid, idx}, utxo.value, utxo.scriptPubKey});
+    accumulated_value += utxo.value;
+    if (accumulated_value >= target) break;
   }
   return coins;
 }

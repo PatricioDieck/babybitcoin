@@ -1,13 +1,18 @@
 #include "p2p_minimal.h"
+#include "common.h"
+#include "tx.h"
 
 #include <arpa/inet.h>
+#include <mutex>
 #include <netdb.h>
+#include <string>
 #include <unistd.h>
 #include <sys/select.h>
 #include <cstring>
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
+#include <unordered_set>
 
 
 #define LOG(msg) do { std::cout << "[P2P] " << msg << std::endl; } while(0)
@@ -241,6 +246,7 @@ void P2PNode::broadcast_local_tx(const Transaction& tx) {
   const auto key = be_hex_key_(tx.txid());
   std::lock_guard<std::mutex> lock(mtx_);
   if (!seen_tx_.insert(key).second) { LOG("→ TX local " << key.substr(0,12) << "… (dup, skip)"); return; }
+  mempool_.push_back(tx);
   Bytes pl = tx.serialize();
   size_t fan=0;
   for (auto& p : peers_) if (p.handshaked) { send_frame_(p.fd, MsgType::TX, pl); fan++; }
@@ -255,6 +261,37 @@ void P2PNode::broadcast_local_block(const Block& b) {
   size_t fan=0;
   for (auto& p : peers_) if (p.handshaked) { send_frame_(p.fd, MsgType::BLOCK, pl); fan++; }
   LOG("→ BLOCK local " << key.substr(0,12) << "… to " << fan << " peer(s)");
+}
+
+
+// -------------- Snapshot of the mempool to mine all Txs into a block --------------
+
+std::vector<Transaction> P2PNode::mempool_snapshot() {
+  std::lock_guard<std::mutex> lock(mtx_);
+  return mempool_;
+}
+
+void P2PNode::clear_mempool() {
+  std::lock_guard<std::mutex> lock(mtx_);
+  mempool_.clear();
+}
+
+// remove stale TXs from the mempool so the next mine is only pending TXs
+void P2PNode::prune_mined_txs(const Block& b) {
+  std::lock_guard<std::mutex> lock(mtx_);
+  if (b.vtx.size() <= 1) return;
+
+  std::unordered_set<std::string> mined_ids;
+  for (size_t i = 1; i < b.vtx.size(); ++i) { // skip coinbase
+    mined_ids.insert(be_hex_key_(b.vtx[i].txid()));
+  }
+
+  std::vector<Transaction> keep;
+  keep.reserve(mempool_.size());
+  for (const auto& t : mempool_) {
+    if (!mined_ids.count(be_hex_key_(t.txid()))) keep.push_back(t);
+  }
+  mempool_.swap(keep);
 }
 
 // -------------- IO thread --------------
