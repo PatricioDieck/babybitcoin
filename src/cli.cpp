@@ -168,7 +168,7 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
 P2PConfig parse_command_line(int argc, char** argv) {
     P2PConfig cfg;
     // setup some config options, demo mode is on
-    cfg.demo_mode = true;
+    // cfg.demo_mode = true;
     cfg.demo_tx_to_send = 5;
  
      // starting on arg 1 bc arg 0 is program name
