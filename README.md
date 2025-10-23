@@ -8,6 +8,13 @@ peer1:
 peer2:
 ./babycoin --port 18446 --connect 127.0.0.1:18444
 
+add `--interactive` or `-i` for interactive mode
+- this sends transactions and blocks to the peer
+
+random transaction tesst 
+- send miner 41862e25d7a3b9fd31e7ba7fc7b8df93209ddbac 1000
+
+
 
 # Purpose & Specification
 

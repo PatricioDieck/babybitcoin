@@ -61,12 +61,12 @@ public:
 
   // snapshot of the mempool to mine all Txs into a block
   std::vector<Transaction> mempool_snapshot();
+  
+  // Optional: clear entire mempool (tests/reset)
+  void clear_mempool();
 
   // Remove included txs after a block is accepted
   void prune_mined_txs(const Block& b);
-
-  // Optional: clear entire mempool (tests/reset)
-  void clear_mempool();
 
 private:
   // --- Peer bookkeeping ---
@@ -75,6 +75,8 @@ private:
     std::string address;           // "ip:port" for logs
     bool        handshaked{false};
     bool        outbound{false};
+    uint32_t    height{0}; // cached from VERSION handshake
+    bool        has_height{false};
   };
 
   // --- Protocol constants & header ---
@@ -138,6 +140,9 @@ This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps
   // --- Demo mode helpers ---
   Transaction make_demo_tx_(uint32_t n);
   void maybe_send_demo_tx_();
+
+  // --- Peer chain sync ---
+  void maybe_catch_up_(Peer& p);
 
   // --- State ---
   ChainState& chain_;

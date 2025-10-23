@@ -294,6 +294,21 @@ void P2PNode::prune_mined_txs(const Block& b) {
   mempool_.swap(keep);
 }
 
+// -------------- Peer chain sync --------------
+
+// BIDIRECTIONAL CHAIN SYNC- this is bc the longer side always pushes to the shorter side
+void P2PNode::maybe_catch_up_(Peer& p) {
+  if (!p.handshaked || !p.has_height) return;
+  uint32_t our = chain_.height();
+  if (our <= p.height) return;
+  for (uint32_t h = p.height; h < our; ++h) {
+    const Block* b = chain_.block_by_index(h);
+    if (!b) break;
+    Bytes pl = b->serialize();
+    send_frame_(p.fd, MsgType::BLOCK, pl);
+  }
+}
+
 // -------------- IO thread --------------
 
 void P2PNode::io_loop_() {
@@ -388,12 +403,16 @@ void P2PNode::dispatch_(Peer& p, const MsgHeader& h, const Bytes& payload) {
       uint32_t peer_proto  = read_u32_le_(cur, end);
       uint32_t peer_height = read_u32_le_(cur, end);
       LOG("← VERSION from " << p.address << " (proto=" << peer_proto << ", height=" << peer_height << ")");
+      p.height = peer_height;
+      p.has_height = true;
       send_verack_(p);
+      maybe_catch_up_(p);  // harmless if not yet handshaked, we'll catch up later
       break;
     }
     case MsgType::VERACK: {
       LOG("← VERACK from " << p.address);
       p.handshaked = true;
+      maybe_catch_up_(p);
       break;
     }
     case MsgType::TX: {

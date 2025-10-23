@@ -168,6 +168,7 @@ bool ChainState::connect_block(const Block& b, int64_t total_fees) {
 
   // Advance tip (happy path: append only)
   tip_hash_ = b.header.hash();
+  chain_.push_back(b);
   height_  += 1;
   (void)total_fees; // not used further yet
   return true;

@@ -31,6 +31,11 @@ public:
   // Returns true on success; false if invalid.
   bool accept_block(const Block& b);
 
+  // Block accessor: return the block at the given index.
+  const Block* block_by_index(uint32_t i) const {
+    return (i < chain_.size()) ? &chain_[i] : nullptr;
+  }
+
   // Simple balance helper: sum of all UTXOs whose script matches HASH160(pub).
   int64_t balance_for_pubkey(const Bytes& pub) const;
 
@@ -66,4 +71,5 @@ private:
   std::unordered_map<UTXOKey, UTXO> utxo_;
   Hash256  tip_hash_{};
   uint32_t height_{0};
+  std::vector<Block> chain_; // height_ == chain_.size()
 };
