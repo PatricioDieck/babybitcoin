@@ -126,3 +126,10 @@ int64_t read_i64_le_(const uint8_t*& p, const uint8_t* end) {
   uint64_t v=0; for (int i=0;i<8;i++) v |= (uint64_t)p[i] << (8*i);
   p += 8; return (int64_t)v;
 }
+
+// Pretty-print a 32-byte hash in the common BE (human) form.
+// Internally we store Hash256 in little-endian; reversing makes it readable.
+std::string hex_hash(const Hash256& h) {
+  Bytes be(h.rbegin(), h.rend());
+  return hex(be);
+}

@@ -69,7 +69,8 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
                 break;
             }
 
-            case Command::WALLET_DELETE: {                
+            case Command::WALLET_DELETE: {             
+                if (args.size() < 2) { std::cout << "Usage: delete <wallet_name>\n"; break; }   
                 std::cout << "Are you sure you want to delete wallet '" + args[1] + "'? (y/n)\n";
                 std::string confirm;
                 std::cin >> confirm;

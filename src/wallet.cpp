@@ -125,6 +125,7 @@ Transaction WalletStore::send(const std::string& fromName,
     Transaction tx;
     int64_t used = 0;
     for (const auto& c : coins) {
+      // scriptSig is empty for now- we'll fill it after signing
       tx.vin.push_back(TxIn{ c.prevout, Bytes{}, 0xffffffff });
       std::cout << "COIN pushed into the tx: " << c.value << "\n";
       used += c.value;

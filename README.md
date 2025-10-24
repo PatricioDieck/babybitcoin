@@ -14,7 +14,12 @@ add `--interactive` or `-i` for interactive mode
 random transaction tesst 
 - send miner 41862e25d7a3b9fd31e7ba7fc7b8df93209ddbac 1000
 
+NOTE- you need to mine the transactions before you can spend them
+- run mine command to mine the transactions
 
+^^^ this is because intra-block spending/validation is not yet been implemented (only implemented in BTC by Pieter Wuille (sipa) and others added the UTXO database and layered cache in 2012–2013.)
+
+https://bitcoin.stackexchange.com/questions/117913/what-is-ccoinscacheentry-in-the-bitcoin-core
 
 # Purpose & Specification
 

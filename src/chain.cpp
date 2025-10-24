@@ -63,22 +63,22 @@ bool ChainState::validate_tx(const Transaction& tx, int64_t& fee) const {
   int64_t sum_in = 0;
 
   for (size_t i = 0; i < tx.vin.size(); ++i) {
-    const auto& in = tx.vin[i];
-    const UTXO* u = get_utxo(in.prevout.txid, in.prevout.index);
+    const auto& tx_input = tx.vin[i];
+    const UTXO* utxo = get_utxo(tx_input.prevout.txid, tx_input.prevout.index);
 
-    if (!u){
+    if (!utxo){
       std::cerr << "VALIDATION ERROR: Input UTXO does not exist for input- this is likely because you havent connected the inputs of your transaction to the UTXO set (unless you are using a coinbase transaction!!)" << "\n";
       return false; // double-spend or unknown input
     }
-    std::cout << "UTXO: " << u->value << " for input " << i << "\n";
+    std::cout << "UTXO: " << utxo->value << " for input " << i << "\n";
 
     // P2PKH only (happy path)
-    if (!verify_p2pkh_input(tx, i, u->scriptPubKey)){
+    if (!verify_p2pkh_input(tx, i, utxo->scriptPubKey)){
       std::cerr << "VALIDATION ERROR: Input UTXO does not match the scriptPubKey of the output" << "\n";
       return false;
     }
 
-    sum_in += u->value;
+    sum_in += utxo->value;
     if (sum_in < 0) return false; // overflow guard
   }
 
@@ -152,7 +152,11 @@ bool ChainState::connect_block(const Block& b, int64_t total_fees) {
   for (size_t i = 1; i < b.vtx.size(); ++i) {
     const auto& tx = b.vtx[i];
     for (const auto& in : tx.vin) {
-      if (!spend_utxo(in.prevout.txid, in.prevout.index)) return false;
+      if (!spend_utxo(in.prevout.txid, in.prevout.index)) {
+        std::cerr << "VALIDATION ERROR: Failed to spend input " << hex_hash(in.prevout.txid) << " " << in.prevout.index << "\n";
+        std::cerr << "this is likely because the input was already spent or does not exist";
+        return false;
+      }
     }
   }
 
@@ -226,7 +230,7 @@ std::vector<Coin> ChainState::gather_coins(const Bytes& pub, int64_t target) con
     std::memcpy(txid.data(), key.data(), 32);
     uint32_t idx = (uint8_t)key[32] | ((uint8_t)key[33] << 8) | ((uint8_t)key[34] << 16) | ((uint8_t)key[35] << 24);
 
-    coins.push_back({OutPoint{txid, idx}, utxo.value, utxo.scriptPubKey});
+    coins.push_back(Coin{OutPoint{txid, idx}, utxo.value, utxo.scriptPubKey});
     accumulated_value += utxo.value;
     if (accumulated_value >= target) break;
   }

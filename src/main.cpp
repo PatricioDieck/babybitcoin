@@ -9,13 +9,6 @@
 #include "block.h"
 #include "chain.h"
 
-// Pretty-print a 32-byte hash in the common BE (human) form.
-// Internally we store Hash256 in little-endian; reversing makes it readable.
-static std::string hex_hash(const Hash256& h) {
-    Bytes be(h.rbegin(), h.rend());
-    return hex(be);
-  }
-
 
 int main() {
     try{

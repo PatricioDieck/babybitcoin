@@ -40,3 +40,7 @@ void write_varint(Bytes &out, uint64_t v);
 
 // Reader used later when we parse inbound data (e.g., from peers or disk).
 uint64_t read_varint(const uint8_t *&p, const uint8_t *end);
+
+// Pretty-print a 32-byte hash in the common BE (human) form.
+// Internally we store Hash256 in little-endian; reversing makes it readable.
+std::string hex_hash(const Hash256& h);
