@@ -17,4 +17,5 @@ compile_commands.json
 wallets/
 
 babycoin
-babycoin
+
+chain.json

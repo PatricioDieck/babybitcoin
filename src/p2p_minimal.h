@@ -129,14 +129,6 @@ This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps
   // --- Helpers ---
   static uint32_t    checksum4_le_(const Bytes& payload);
 
-  // --- Parsers (inverse of your serialize()) ---
-  static OutPoint    parse_outpoint_(const uint8_t*& p, const uint8_t* end);
-  static TxIn        parse_txin_(const uint8_t*& p, const uint8_t* end);
-  static TxOut       parse_txout_(const uint8_t*& p, const uint8_t* end);
-  static Transaction parse_tx_(const uint8_t*& p, const uint8_t* end);
-  static BlockHeader parse_header_(const uint8_t*& p, const uint8_t* end);
-  static Block       parse_block_(const uint8_t*& p, const uint8_t* end);
-
   // --- Demo mode helpers ---
   Transaction make_demo_tx_(uint32_t n);
   void maybe_send_demo_tx_();

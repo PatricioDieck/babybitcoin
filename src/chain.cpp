@@ -1,5 +1,6 @@
 #include "chain.h"
 #include "script_min.h"
+#include "storage.h"
 #include <cstring>
 #include <iostream>
 
@@ -174,6 +175,13 @@ bool ChainState::connect_block(const Block& b, int64_t total_fees) {
   tip_hash_ = b.header.hash();
   chain_.push_back(b);
   height_  += 1;
+  bool saved = save_chain(*this, "data"); // save the chain to the JSON file
+  if (saved) {
+    std::cerr << "SUCCESS: Chain saved to JSON file" << "\n";
+  } else {
+    std::cerr << "ERROR: Failed to save chain to JSON file" << "\n";
+    return false;
+  }
   (void)total_fees; // not used further yet
   return true;
 }

@@ -27,7 +27,7 @@ public:
   uint32_t height() const { return height_; }
   Hash256  tip_hash() const { return tip_hash_; }
 
-  // Validate (without mutating), then connect a block (mutate UTXO set & tip) on success.
+  // Validate (w/o mutating), connect a block (mutate UTXO set & tip) on success.
   // Returns true on success; false if invalid.
   bool accept_block(const Block& b);
 

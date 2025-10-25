@@ -21,6 +21,17 @@ NOTE- you need to mine the transactions before you can spend them
 
 https://bitcoin.stackexchange.com/questions/117913/what-is-ccoinscacheentry-in-the-bitcoin-core
 
+---
+### Storage - Blockchain Persistence
+The saving of the blockchain happens in thefolllowing places:
+- after a block is mined
+- after a block is connected/accepted to the chain
+
+The loading of the blockchain happens in the following places:
+- on startup
+- (later) after a crash
+---
+
 # Purpose & Specification
 
 The goal of this project is to **develop a clear, working mental model of Bitcoin’s design and codebase** by re-implementing the system described in the 2008 whitepaper, step by step, in **minimal C++**.

@@ -1,6 +1,7 @@
 #include "p2p_minimal.h"
 #include "common.h"
 #include "tx.h"
+#include "serialize.h"
 
 #include <arpa/inet.h>
 #include <mutex>
@@ -89,63 +90,6 @@ bool P2PNode::recv_frame_(int fd, MsgHeader& h, Bytes& payload) {
   payload.resize(h.length_le);
   if (h.length_le && !read_n_(fd, payload.data(), payload.size())) return false;
   return checksum4_le_(payload) == h.csum_le;
-}
-
-// -------------- Parsers (inverse of your serialize) ------------
-
-OutPoint P2PNode::parse_outpoint_(const uint8_t*& p, const uint8_t* end) {
-  if (end - p < 36) throw std::runtime_error("outpoint eof");
-  OutPoint op{};
-  std::memcpy(op.txid.data(), p, 32); p += 32;
-  op.index = read_u32_le_(p, end);
-  return op;
-}
-TxIn P2PNode::parse_txin_(const uint8_t*& p, const uint8_t* end) {
-  TxIn in{};
-  in.prevout = parse_outpoint_(p, end);
-  uint64_t slen = read_varint(p, end);
-  if ((uint64_t)(end - p) < slen) throw std::runtime_error("scriptsig eof");
-  in.scriptSig.assign(p, p + slen); p += slen;
-  in.sequence = read_u32_le_(p, end);
-  return in;
-}
-TxOut P2PNode::parse_txout_(const uint8_t*& p, const uint8_t* end) {
-  TxOut o{};
-  o.value = read_i64_le_(p, end);
-  uint64_t plen = read_varint(p, end);
-  if ((uint64_t)(end - p) < plen) throw std::runtime_error("scriptpubkey eof");
-  o.scriptPubKey.assign(p, p + plen); p += plen;
-  return o;
-}
-Transaction P2PNode::parse_tx_(const uint8_t*& p, const uint8_t* end) {
-  Transaction tx{};
-  tx.version = (int32_t)read_u32_le_(p, end);
-  uint64_t nin = read_varint(p, end);  tx.vin.reserve((size_t)nin);
-  for (uint64_t i=0;i<nin;i++) tx.vin.push_back(parse_txin_(p, end));
-  uint64_t nout = read_varint(p, end); tx.vout.reserve((size_t)nout);
-  for (uint64_t i=0;i<nout;i++) tx.vout.push_back(parse_txout_(p, end));
-  tx.locktime = read_u32_le_(p, end);
-  return tx;
-}
-BlockHeader P2PNode::parse_header_(const uint8_t*& p, const uint8_t* end) {
-  BlockHeader h{};
-  h.version = (int32_t)read_u32_le_(p, end);
-  if (end - p < 32) throw std::runtime_error("prev_block eof");
-  std::memcpy(h.prev_block.data(), p, 32); p += 32;
-  if (end - p < 32) throw std::runtime_error("merkle_root eof");
-  std::memcpy(h.merkle_root.data(), p, 32); p += 32;
-  h.timestamp = read_u32_le_(p, end);
-  h.bits      = read_u32_le_(p, end);
-  h.nonce     = read_u32_le_(p, end);
-  return h;
-}
-Block P2PNode::parse_block_(const uint8_t*& p, const uint8_t* end) {
-  Block b{};
-  b.header = parse_header_(p, end);
-  uint64_t ntx = read_varint(p, end);
-  b.vtx.reserve((size_t)ntx);
-  for (uint64_t i=0;i<ntx;i++) b.vtx.push_back(parse_tx_(p, end));
-  return b;
 }
 
 // -------------- Demo mode helpers --------------
@@ -416,7 +360,7 @@ void P2PNode::dispatch_(Peer& p, const MsgHeader& h, const Bytes& payload) {
       break;
     }
     case MsgType::TX: {
-      Transaction tx = parse_tx_(cur, end);
+      Transaction tx = parse_tx(cur, end);
       auto key = be_hex_key_(tx.txid());
       LOG("← TX " << key.substr(0,12) << "… from " << p.address);
       if (!seen_tx_.insert(key).second) { LOG("  (dup)"); break; }
@@ -434,7 +378,7 @@ void P2PNode::dispatch_(Peer& p, const MsgHeader& h, const Bytes& payload) {
       break;
     }
     case MsgType::BLOCK: {
-      Block b = parse_block_(cur, end);
+      Block b = parse_block(cur, end);
       auto key = be_hex_key_(b.header.hash());
       LOG("← BLOCK " << key.substr(0,12) << "… from " << p.address);
       if (!seen_block_.insert(key).second) { LOG("  (dup)"); break; }

@@ -7,6 +7,7 @@
 #include "tx.h"
 #include "p2p_minimal.h"
 #include "cli.cpp"
+#include "storage.h"
 
 #include <cstdint>
 #include <iostream>
@@ -21,7 +22,13 @@ int main(int argc, char** argv) {
     
     constexpr int64_t COIN = 100'000'000;
 
+    // load the chain from the JSON file
     ChainState cs;
+    std::string datadir = "data";
+    if (!load_chain(cs, datadir)) {
+        std::cerr << "No chain file, starting fresh\n";
+    }
+
     P2PConfig cfg = parse_command_line(argc, argv);
 
     P2PNode p2p(cs);

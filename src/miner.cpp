@@ -3,6 +3,7 @@
 #include "miner.h"
 #include "block.h"
 #include "chain.h"
+#include "storage.h"
 #include "tx.h"
 #include "common.h"
 #include <vector>
@@ -37,6 +38,7 @@ bool mine_once(ChainState& cs, MinerConfig& cfg, P2PNode& p2p) {
         std::cerr << "ERROR: Failed to accept block" << "\n";
         return false;
     }
+    save_chain(cs, "data");
     p2p.broadcast_local_block(b);
 
 
