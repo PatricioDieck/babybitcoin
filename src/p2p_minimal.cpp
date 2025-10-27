@@ -92,49 +92,6 @@ bool P2PNode::recv_frame_(int fd, MsgHeader& h, Bytes& payload) {
   return checksum4_le_(payload) == h.csum_le;
 }
 
-// -------------- Demo mode helpers --------------
-
-Transaction P2PNode::make_demo_tx_(uint32_t n) {
-  // Construct a tiny-but-validly-serialized TX. Not spendable/valid at consensus,
-  // but perfect to exercise gossip. Unique by 'n'.
-  Transaction tx;
-
-  // Fake prevout: txid = sha256("demo"||n), index = n
-  Bytes seed; seed.insert(seed.end(), {'d','e','m','o'}); write_u32_le(seed, n);
-  Hash256 h = sha256(seed);
-  TxIn in;
-  std::memcpy(in.prevout.txid.data(), h.data(), 32);
-  in.prevout.index = n;
-  in.scriptSig = Bytes{'d','e','m','o', (uint8_t)(n & 0xff)}; // arbitrary
-  tx.vin.push_back(in);
-
-  // One zero-value output (scriptPubKey empty). Still serializes fine.
-  TxOut out;
-  out.value = 0;
-  out.scriptPubKey = {};
-  tx.vout.push_back(out);
-
-  return tx;
-}
-
-void P2PNode::maybe_send_demo_tx_() {
-  if (!demo_mode_ || demo_remaining_ <= 0) return;
-
-  // Only send if we have at least one handshaked peer.
-  bool any_ok=false;
-  for (auto& p : peers_) if (p.handshaked) { any_ok=true; break; }
-  if (!any_ok) return;
-
-  auto now = std::chrono::steady_clock::now();
-  if (now < demo_next_) return;
-
-  Transaction tx = make_demo_tx_(++demo_nonce_);
-  LOG("demo: originating TX " << be_hex_key_(tx.txid()).substr(0,12) << "…");
-  broadcast_local_tx(tx);
-  demo_remaining_--;
-  demo_next_ = now + std::chrono::milliseconds(demo_interval_ms_);
-}
-
 // -------------- Lifecycle --------------
 
 P2PNode::P2PNode(ChainState& chain) : chain_(chain) {}
@@ -156,11 +113,6 @@ bool P2PNode::connect_outbound_(const std::string& host, uint16_t port) {
 
 bool P2PNode::start(const P2PConfig& cfg) {
   select_timeout_ms_ = cfg.select_timeout_ms;
-  demo_mode_         = cfg.demo_mode;
-  demo_remaining_    = cfg.demo_tx_to_send;
-  demo_interval_ms_  = cfg.demo_ms_between;
-  demo_nonce_        = 0;
-  demo_next_         = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
 
   if (!listen_on_(cfg.listen_port)) return false;
   for (const auto& pa : cfg.peers) (void)connect_outbound_(pa.host, pa.port);
@@ -280,7 +232,6 @@ void P2PNode::io_loop_() {
     timeval tv{ select_timeout_ms_/1000, (select_timeout_ms_%1000)*1000 };
     // rv stands for return value
     int rv = select(maxfd+1, &rfds, nullptr, nullptr, &tv);
-    if (rv <= 0) { maybe_send_demo_tx_(); continue; }
 
     // if the listen fd is set, accept an inbound connection
     if (listen_fd_ >= 0 && FD_ISSET(listen_fd_, &rfds)) accept_inbound_();
@@ -292,9 +243,6 @@ void P2PNode::io_loop_() {
         if (!handle_peer_io_((size_t)idx)) { /* peer removed; indexes shift */ }
       }
     }
-
-    // After handling IO, try demo again
-    maybe_send_demo_tx_();
   }
 }
 

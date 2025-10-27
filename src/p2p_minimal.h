@@ -5,9 +5,7 @@
 //  - TX: broadcast without validation (per our decision).
 //  - BLOCK: validated via ChainState::accept_block(b) before re-gossip.
 //
-// Also supports an optional "demo mode" that self-broadcasts a few dummy TXs
-// after handshake so you can see traffic in terminals.
-//
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -18,7 +16,6 @@
 #include <chrono>
 
 #include "common.h"   // Bytes, write_u32_le, read_varint, hex
-#include "crypto.h"   // sha256, dbl_sha256
 #include "tx.h"       // Transaction, OutPoint, TxIn, TxOut
 #include "block.h"    // Block, BlockHeader
 #include "chain.h"    // ChainState
@@ -35,11 +32,6 @@ struct P2PConfig {
   uint16_t listen_port = 18444;
   std::vector<PeerAddress> peers;    // optional outbound peers
   int select_timeout_ms = 250;
-
-  // Demo mode (optional): auto-send a couple TXs so you can see logs flowing.
-  bool demo_mode = false;
-  int  demo_tx_to_send = 3;          // total demo TXs to originate
-  int  demo_ms_between = 1000;       // delay between demo TXs
 };
 
 class P2PNode {
@@ -130,10 +122,6 @@ This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps
   // --- Helpers ---
   static uint32_t    checksum4_le_(const Bytes& payload);
 
-  // --- Demo mode helpers ---
-  Transaction make_demo_tx_(uint32_t n);
-  void maybe_send_demo_tx_();
-
   // --- Peer chain sync ---
   void maybe_catch_up_(Peer& p);
 
@@ -150,12 +138,5 @@ This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps
   std::atomic<bool> running_{false};
   int select_timeout_ms_{250};
   std::mutex mtx_;
-
-  // demo
-  bool demo_mode_{false};
-  int  demo_remaining_{0};
-  int  demo_interval_ms_{1000};
-  uint32_t demo_nonce_{0};
-  std::chrono::steady_clock::time_point demo_next_;
 };
 
