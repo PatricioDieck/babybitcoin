@@ -44,6 +44,7 @@ struct P2PConfig {
 
 class P2PNode {
 public:
+  // we are constructing a P2PNode with a private ***reference*** to ChainState (ChainState is a class that holds the chain data)
   explicit P2PNode(ChainState& chain);
   ~P2PNode();
 

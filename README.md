@@ -22,6 +22,10 @@ NOTE- you need to mine the transactions before you can spend them
 https://bitcoin.stackexchange.com/questions/117913/what-is-ccoinscacheentry-in-the-bitcoin-core
 
 ---
+
+> CHAINS ARENT SYNCING FOR SOME REASON - YOU CAN HAVE A LONGER ONE AND THE SHORT ONE WILL NOT CATCH UP, AND EVEN SYNC THE SHORTER ONE OVER THE LONGER ONE!!!
+- this is literally  the need for a consensus policy - longest chain should be the correct one?
+
 ### Storage - Blockchain Persistence
 The saving of the blockchain happens in thefolllowing places:
 - after a block is mined

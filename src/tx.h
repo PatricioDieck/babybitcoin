@@ -1,6 +1,5 @@
 #pragma once
 #include "common.h"
-#include "crypto.h"
 
 struct OutPoint {
   Hash256 txid;

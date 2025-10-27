@@ -1,5 +1,6 @@
 #include "p2p_minimal.h"
 #include "common.h"
+#include "crypto.h"
 #include "tx.h"
 #include "serialize.h"
 
@@ -12,7 +13,6 @@
 #include <cstring>
 #include <algorithm>
 #include <iostream>
-#include <iomanip>
 #include <unordered_set>
 
 

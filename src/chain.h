@@ -11,6 +11,7 @@ struct UTXO {
   Bytes   scriptPubKey;
 };
 
+// basically a spendableUTXO - OutPoint + value + scriptPubKey to build new TxIns 
 struct Coin {
   OutPoint prevout;      // tx.h
   int64_t  value;
