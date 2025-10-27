@@ -15,7 +15,7 @@
 #include <mutex>
 #include <chrono>
 
-#include "common.h"   // Bytes, write_u32_le, read_varint, hex
+#include "utils/common.h"   // Bytes, write_u32_le, read_varint, hex
 #include "tx.h"       // Transaction, OutPoint, TxIn, TxOut
 #include "block.h"    // Block, BlockHeader
 #include "chain.h"    // ChainState

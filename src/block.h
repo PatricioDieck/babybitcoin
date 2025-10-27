@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include "utils/common.h"
 #include "tx.h"
 
 // A block header commits to: version, previous block, Merkle root of all txs,

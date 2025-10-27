@@ -100,7 +100,7 @@ uint64_t read_varint(const uint8_t*& p, const uint8_t* end);
 
 ```cpp
 // src/common.cpp
-#include "common.h"
+#include "utils/common.h"
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>

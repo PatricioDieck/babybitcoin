@@ -1,6 +1,8 @@
+
+
 #include "wallet.h"
-#include "crypto.h"
-#include "chain.h"
+#include "utils/crypto.h"
+#include "utils/common.h"
 #include "tx.h"
 #include "script_min.h"
 #include "p2p_minimal.h"
@@ -45,9 +47,6 @@ Wallet WalletStore::create_wallet(const std::string& name) {
     std::ofstream file(path);
     file << wallet_json.dump(4);
     file.close();
-
-    std::cout << "✅ Wallet '" << name << "' created!\n";
-    std::cout << "Address: " << wallet_json["address_hex"] << "\n";
 
     return wallet;
 }

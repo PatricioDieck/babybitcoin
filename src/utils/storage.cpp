@@ -1,9 +1,9 @@
 #include "storage.h"
 #include "serialize.h"
 #include "common.h"
-#include "block.h"
-#include "chain.h"
-#include "../third_party/json.hpp"
+#include "../block.h"
+#include "../chain.h"
+#include "../../third_party/json.hpp"
 
 #include <iostream>
 #include <string>

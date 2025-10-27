@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include "utils/common.h"
 
 struct OutPoint {
   Hash256 txid;

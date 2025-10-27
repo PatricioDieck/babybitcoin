@@ -1,10 +1,18 @@
 #include "chain.h"
 #include "script_min.h"
-#include "storage.h"
+#include "utils/storage.h"
 #include <cstring>
 #include <iostream>
 
 // --- helpers ---
+
+bool ChainState::load(const std::string& datadir){
+  load_chain(*this, datadir);
+};
+
+bool ChainState::save(const std::string& datadir) const {
+  save_chain(*this, datadir);
+};
 
 ChainState::UTXOKey ChainState::make_key(const Hash256& txid, uint32_t index) {
   // Binary key: 32B txid (LE) + 4B index (LE)
@@ -175,13 +183,7 @@ bool ChainState::connect_block(const Block& b, int64_t total_fees) {
   tip_hash_ = b.header.hash();
   chain_.push_back(b);
   height_  += 1;
-  bool saved = save_chain(*this, "data"); // save the chain to the JSON file
-  if (saved) {
-    std::cerr << "SUCCESS: Chain saved to JSON file" << "\n";
-  } else {
-    std::cerr << "ERROR: Failed to save chain to JSON file" << "\n";
-    return false;
-  }
+  save("data"); // save the chain to the JSON file
   (void)total_fees; // not used further yet
   return true;
 }

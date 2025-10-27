@@ -1,6 +1,6 @@
 #pragma once
-#include "common.h"
-#include "crypto.h"
+#include "utils/common.h"
+#include "utils/crypto.h"
 
 // Build standard P2PKH scriptPubKey: OP_DUP OP_HASH160 <20B> OP_EQUALVERIFY
 // OP_CHECKSIG

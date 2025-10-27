@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <string>
-#include "common.h"
+#include "utils/common.h"
 #include "tx.h"
 #include "block.h"
 
@@ -23,6 +23,9 @@ struct Coin {
 class ChainState {
 public:
   ChainState();
+
+  bool load(const std::string& datadir);
+  bool save(const std::string& datadir) const;
 
   // Return current height (genesis would be 0; our first block is height 0 if we treat it as genesis-ish).
   uint32_t height() const { return height_; }

@@ -3,9 +3,9 @@
 #include "miner.h"
 #include "block.h"
 #include "chain.h"
-#include "storage.h"
 #include "tx.h"
-#include "common.h"
+#include "utils/common.h"
+#include "utils/storage.h"
 #include <vector>
 #include <iostream>
 

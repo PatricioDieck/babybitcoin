@@ -1,12 +1,12 @@
 
 
 
-#include "block.h"
-#include "chain.h"
-#include "common.h"
-#include "crypto.h"
-#include "script_min.h"
-#include "tx.h"
+#include "../block.h"
+#include "../chain.h"
+#include "../utils/common.h"
+#include "../utils/crypto.h"
+#include "../script_min.h"
+#include "../tx.h"
 #include <cstdint>
 #include <iostream>
 #include <string>

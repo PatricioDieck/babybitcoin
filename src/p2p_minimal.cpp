@@ -1,8 +1,8 @@
 #include "p2p_minimal.h"
-#include "common.h"
-#include "crypto.h"
+#include "utils/common.h"
+#include "utils/crypto.h"
 #include "tx.h"
-#include "serialize.h"
+#include "utils/serialize.h"
 
 #include <arpa/inet.h>
 #include <mutex>

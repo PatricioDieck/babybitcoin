@@ -1,6 +1,6 @@
 #pragma once
-#include "tx.h"
-#include "block.h"
+#include "../tx.h"
+#include "../block.h"
 
 // -------------- Parsers (inverse of serialize) ------------
 OutPoint    parse_outpoint(const uint8_t*& p, const uint8_t* end);

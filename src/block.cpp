@@ -1,5 +1,5 @@
 #include "block.h"
-#include "crypto.h"
+#include "utils/crypto.h"
 #include <chrono>
 
 // Internal helper: append a 32-byte hash in the form we store (LE bytes).

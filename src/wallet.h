@@ -5,8 +5,8 @@
 #include <vector>
 #include <filesystem>
 
-#include "crypto.h"
-#include "common.h"
+#include "utils/crypto.h"
+#include "utils/common.h"
 #include "tx.h"
 class ChainState;
 class P2PNode;

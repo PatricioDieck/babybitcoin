@@ -1,6 +1,6 @@
 #include "p2p_minimal.h"
 #include "miner.h"
-#include "common.h"
+#include "utils/common.h"
 #include <iostream>
 #include <vector>
 #include "wallet.h"
@@ -61,7 +61,7 @@ void execute_command(Command cmd, const std::vector<std::string>& args, ChainSta
                 }
                 try {
                 Wallet new_wallet = ws.create_wallet(args[1]);
-                    std::cout << "Wallet '" + new_wallet.name + "' created successfully\n";
+                    std::cout << "✅ Wallet '" + new_wallet.name + "' created successfully\n";
                     std::cout << "Address: " << WalletStore::address_hex(new_wallet.keys.pub) << "\n";
                 } catch (const std::exception& e) {
                     std::cout << "Error: " << e.what() << "\n";
