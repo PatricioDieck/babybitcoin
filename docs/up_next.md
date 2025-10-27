@@ -38,14 +38,6 @@ Short answer: keep the wallet signing locally, make the chain/node do state, and
   - `send <fromName> <toAddress> <amount_sats>` → builds, signs, and broadcasts `tx`.
   - `mine [seconds]` (optional manual mining trigger on Chris’s node)
 
-### How the demo flows
-- Chris runs the node: `./babycoin --port 18444` (listens, mines).
-- You run a peer: `./babycoin --port 18445 --connect chris.ip:18444`.
-- You do:
-  - `wallet create alice`
-  - `balance alice`
-  - `send alice <chris_base58_addr> 100000`
-- Your peer signs locally, broadcasts. Chris’s node validates, adds to mempool, mines it into a block, and relays back. Balance updates on both sides.
 
 ### Why this stays faithful and simple
 - Full validation/mining/persistence live in the node (Satoshi-style).

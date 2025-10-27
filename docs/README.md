@@ -506,9 +506,7 @@ Modules inside of the project:
 - peers: vector<PeerAddress>
   - host: string
   - port: uint16_t
-- demo_mode: bool
-- demo_tx_to_send: int
-- demo_ms_between: int
+
 
 ## ChainState
 - height(): uint32_t
