@@ -51,9 +51,6 @@ int main(int argc, char** argv) {
     std::cout << "Genesis accepted: " << (accepted ? "YES" : "NO") << "\n";
     if (accepted) p2p.broadcast_local_block(genesis);
 
-    std::cout << "miner balance: " << cs.balance_for_pubkey(miner.keys.pub) << "\n";
-    std::cout << "alice balance: " << cs.balance_for_pubkey(alice.keys.pub) << "\n";
-
    // Determine mode based on command line arguments
    bool interactive_mode = std::any_of(argv + 1, argv + argc, [](const char* arg) {
        return std::string(arg) == "--interactive" || std::string(arg) == "-i";

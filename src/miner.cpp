@@ -5,7 +5,6 @@
 #include "chain.h"
 #include "tx.h"
 #include "utils/common.h"
-#include "utils/storage.h"
 #include <vector>
 #include <iostream>
 

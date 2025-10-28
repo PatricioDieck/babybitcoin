@@ -79,7 +79,7 @@ bool ChainState::validate_tx(const Transaction& tx, int64_t& fee) const {
       std::cerr << "VALIDATION ERROR: Input UTXO does not exist for input- this is likely because you havent connected the inputs of your transaction to the UTXO set (unless you are using a coinbase transaction!!)" << "\n";
       return false; // double-spend or unknown input
     }
-    std::cout << "UTXO: " << utxo->value << " for input " << i << "\n";
+    // std::cout << "UTXO: " << utxo->value << " for input " << i << "\n";
 
     // P2PKH only (happy path)
     if (!verify_p2pkh_input(tx, i, utxo->scriptPubKey)){

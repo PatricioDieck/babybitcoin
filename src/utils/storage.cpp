@@ -23,13 +23,13 @@ bool save_chain(const ChainState& cs, const std::string& datadir){
     try {
         json j;
         j["height"] = cs.height();
-        std::cout << "SUCCESS: Height saved to JSON object: " << j["height"] << "\n";
+        // std::cout << "SUCCESS: Height saved to JSON object: " << j["height"] << "\n";
 
         // TIP -> BE hex for readability
         Hash256 tip = cs.tip_hash();
         Bytes be(tip.rbegin(), tip.rend());
         j["tip"] = hex(be);
-        std::cout << "SUCCESS: Tip saved to JSON object: " << j["tip"] << "\n";
+        // std::cout << "SUCCESS: Tip saved to JSON object: " << j["tip"] << "\n";
 
         // BLOCK -> hex of serialized bytes
         json blocks = json::array();
@@ -40,7 +40,7 @@ bool save_chain(const ChainState& cs, const std::string& datadir){
             blocks.push_back(hex(ser));
         }
         j["blocks"] = blocks;
-        std::cout << "SUCCESS: Prepared blocks array of size " << blocks.size() << "\n";
+        // std::cout << "SUCCESS: Prepared blocks array of size " << blocks.size() << "\n";
 
         const std::string path = chain_file_path(datadir);
         std::ofstream f(path, std::ios::trunc);

@@ -94,7 +94,7 @@ std::vector<std::string> WalletStore::list_wallets() const {
     return out;
 };
 
-Transaction WalletStore::send(const std::string& fromName,
+Transaction WalletStore::send_(const std::string& fromName,
                               const std::string& toAddressHex,
                               int64_t amount,
                               ChainState& cs,
@@ -178,7 +178,7 @@ Transaction WalletStore::send_and_broadcast(const std::string& fromName,
                                             ChainState& cs,
                                             P2PNode& p2p,
                                             int64_t fee) {
-    Transaction tx = send(fromName, toAddressHex, amount, cs, fee);
+    Transaction tx = send_(fromName, toAddressHex, amount, cs, fee);
     p2p.broadcast_local_tx(tx);
     return tx;
 }
