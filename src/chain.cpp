@@ -7,11 +7,11 @@
 // --- helpers ---
 
 bool ChainState::load(const std::string& datadir){
-  load_chain(*this, datadir);
+  return load_chain(*this, datadir);
 };
 
 bool ChainState::save(const std::string& datadir) const {
-  save_chain(*this, datadir);
+  return save_chain(*this, datadir);
 };
 
 ChainState::UTXOKey ChainState::make_key(const Hash256& txid, uint32_t index) {

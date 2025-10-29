@@ -54,7 +54,8 @@ bool save_chain(const ChainState& cs, const std::string& datadir){
             std::cerr << "ERROR: Write failed for: " << path << "\n";
             return false;
         }
-        std::cout << "SUCCESS: Chain written to " << path << "\n";
+        // std::cout << "SUCCESS: Chain written to " << path << "\n";
+        // hello baby 
         return true;
     } catch (...) {
         std::cerr << "ERROR: Exception while saving chain JSON" << "\n";

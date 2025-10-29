@@ -4,8 +4,7 @@
 #include "utils/crypto.h"
 #include "p2p_minimal.h"
 #include "tx.h"
-#include "p2p_minimal.h"
-#include "cli.cpp"
+#include "cli.h"
 #include "wallet.h"
 
 #include <cstdint>
@@ -21,7 +20,9 @@ int main(int argc, char** argv) {
     // load the chain from the JSON file
     ChainState cs;
     std::string datadir = "data";
-    cs.load(datadir) || std::cout << "Starting fresh - no existing chain data found\n";
+    if (!cs.load(datadir)){ 
+        std::cout << "Starting fresh - no existing chain data found\n";
+    };
 
     P2PConfig cfg = parse_command_line(argc, argv);
     P2PNode p2p(cs);
@@ -35,21 +36,33 @@ int main(int argc, char** argv) {
     Wallet miner = ws.create_wallet("miner");
     Wallet alice = ws.create_wallet("alice");
 
-    Transaction coinbase_tx = make_coinbase(miner.keys.pub, 50 * COIN, Bytes{0x01,0x02,0x03});
+   // Only mine genesis if chain is empty
+    if (cs.height() == 0) {
+        constexpr int64_t COIN = 100'000'000;
 
-    Block genesis;
-    genesis.header.version     = 1;
-    genesis.header.prev_block  = Hash256{};
-    genesis.header.timestamp   = static_cast<uint32_t>(std::time(nullptr));
-    genesis.header.bits        = 18;
-    genesis.vtx.push_back(coinbase_tx);
+        Transaction coinbase_tx = make_coinbase(miner.keys.pub, 50 * COIN, Bytes{0x01,0x02,0x03});
 
-    bool mined = mine_block(genesis);
-    std::cout << "Genesis mined: " << (mined ? "YES" : "NO") << "\n";
+        Block genesis;
+        genesis.header.version     = 1;
+        genesis.header.prev_block  = Hash256{};
+        genesis.header.timestamp   = static_cast<uint32_t>(std::time(nullptr));
+        genesis.header.bits        = 18;
+        genesis.vtx.push_back(coinbase_tx);
 
-    bool accepted = cs.accept_block(genesis);
-    std::cout << "Genesis accepted: " << (accepted ? "YES" : "NO") << "\n";
-    if (accepted) p2p.broadcast_local_block(genesis);
+        bool mined = mine_block(genesis);
+        std::cout << "Genesis mined: " << (mined ? "YES" : "NO") << "\n";
+
+        bool accepted = cs.accept_block(genesis);
+        std::cout << "Genesis accepted: " << (accepted ? "YES" : "NO") << "\n";
+        if (accepted) {
+            p2p.broadcast_local_block(genesis);
+            // Persist tip so next restart doesn’t re-genesis
+            cs.save("data"); // if you don’t have cs.save, call save_chain(cs, "data")
+        }
+    } else {
+        std::cout << "Loaded chain: \n height=" << cs.height()
+                << "\n tip=" << be_hex_key_(cs.tip_hash()) << "\n";
+    }
 
    // Determine mode based on command line arguments
    bool interactive_mode = std::any_of(argv + 1, argv + argc, [](const char* arg) {
