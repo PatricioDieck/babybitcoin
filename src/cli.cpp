@@ -186,7 +186,7 @@ P2PConfig parse_command_line(int argc, char** argv) {
  
              peer.host = arg.substr(0, pos);
              peer.port = static_cast<uint16_t>(std::stoi(arg.substr(pos+1)));
-            //  cfg.peers.push_back(peer);
+             cfg.peers.push_back(peer);
              
          } else if (a.find("help" ) != std::string::npos) {
              system("cat README.md"); 
