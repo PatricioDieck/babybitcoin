@@ -6,7 +6,7 @@ babycoin
 
 # IDE configuration
 .vscode/
-compile_commands.json
+
 
 # macOS
 .DS_Store
