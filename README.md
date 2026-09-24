@@ -5,6 +5,8 @@ make run
 peer1:
 ./babycoin --port 18445 --connect 127.0.0.1:18444
 
+./babycoin --port 18445 --connect 192.168.10.78:18444
+
 peer2:
 ./babycoin --port 18446 --connect 127.0.0.1:18444
 
@@ -540,3 +542,32 @@ maybe control the program **from the CLI**
   - sign txs
 
 maybe **read the whitepaper again**
+
+---
+
+## Reading Strategy
+Use this loop:
+
+1. Find the nouns: Block, Transaction, UTXO, ChainState
+2. Find the state: utxo_, chain_, tip_hash_, height_
+3. Find the main verb: accept_block()
+4. Find the invariant: no invalid money enters the UTXO set
+5. Put every helper under one of those buckets
+
+`ChainState` is the accountant. It keeps the current spendable coins, accepts only valid blocks, spends old outputs, creates new outputs, and remembers the chain tip.
+
+
+### Pass 1: What Is This Thing?
+
+**What real-world problem does this project solve?**
+Can one wallet create value, send it, mine it, and have another wallet verify ownership?
+
+### Pass 2: What Are The Main Nouns?
+
+What are the 5-7 nouns that appear everywhere?
+Which nouns are real domain concepts?
+Which nouns are just technical plumbing?
+Which noun seems to own the truth?
+Which noun changes over time?
+
+> In most systems, “the architecture” is the relationship between the nouns.

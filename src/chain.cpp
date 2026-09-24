@@ -16,6 +16,7 @@ bool ChainState::save(const std::string& datadir) const {
 
 ChainState::UTXOKey ChainState::make_key(const Hash256& txid, uint32_t index) {
   // Binary key: 32B txid (LE) + 4B index (LE)
+  // This allows efficient lookup and storage in a std::unordered_map<std::string, UTXO>.
   std::string k; k.resize(36);
   std::memcpy(k.data(), txid.data(), 32);
   k[32] = (char)(index & 0xff);

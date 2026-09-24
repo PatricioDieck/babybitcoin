@@ -71,7 +71,7 @@ private:
   bool validate_block(const Block& b, int64_t& total_fees) const;
   bool connect_block(const Block& b, int64_t total_fees); // mutate UTXO & tip
 
-  // State
+  // Chain State
   std::unordered_map<UTXOKey, UTXO> utxo_;
   Hash256  tip_hash_{};
   uint32_t height_{0};

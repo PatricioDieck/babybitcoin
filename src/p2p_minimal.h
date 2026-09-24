@@ -82,18 +82,18 @@ private:
     BLOCK   = 0x11, // payload: Block::serialize()
   };
 
-/* 
-#pragma pack(1) tells the compiler: "pack this struct tightly with no padding"
-This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps 
-*/
-#pragma pack(push,1)
-  struct MsgHeader {
-    uint32_t magic;
-    uint8_t  type;
-    uint32_t length_le;
-    uint32_t csum_le;
-  };
-#pragma pack(pop)
+  /* 
+  #pragma pack(1) tells the compiler: "pack this struct tightly with no padding"
+  This ensures the struct is exactly 13 bytes (4+1+4+4) with no gaps 
+  */
+  #pragma pack(push,1)
+    struct MsgHeader {
+      uint32_t magic;
+      uint8_t  type;
+      uint32_t length_le;
+      uint32_t csum_le;
+    };
+  #pragma pack(pop)
 
   // --- Lifecycle & loop ---
   bool listen_on_(uint16_t port);

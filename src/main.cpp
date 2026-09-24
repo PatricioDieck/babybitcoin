@@ -38,8 +38,6 @@ int main(int argc, char** argv) {
 
    // Only mine genesis if chain is empty
     if (cs.height() == 0) {
-        constexpr int64_t COIN = 100'000'000;
-
         Transaction coinbase_tx = make_coinbase(miner.keys.pub, 50 * COIN, Bytes{0x01,0x02,0x03});
 
         Block genesis;
