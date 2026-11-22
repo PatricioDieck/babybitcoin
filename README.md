@@ -1,3 +1,40 @@
+# Purpose & Specification
+
+The goal of this project is to **develop a clear, working mental model of Bitcoin’s design and codebase** by re-implementing the system described in the 2008 whitepaper, step by step, in **minimal C++**.
+
+Rather than immediately wrestling with the full complexity of Bitcoin Core, this project follows a **happy-path implementation** that emphasizes **clarity, modularity, and simplicity**. By the end, we want a toy blockchain that can be held entirely in memory—something small enough to “fit in the brain” but faithful enough to reflect the real Bitcoin design.
+
+### Why we are doing this
+
+* **Educational clarity**: The Bitcoin codebase (even early 0.1) is large and intimidating. It’s easy to get lost in utilities, constants, or C++ idioms and lose sight of the big picture.
+* **Bridging theory and practice**: Reading the whitepaper provides the thousand-foot conceptual view; implementing each section grounds that theory in working code.
+* **Mental modeling**: We want to move fluidly between the **macro view** (system design, data flow), the **meso view** (modules, interfaces), and the **micro view** (specific functions, bytes on the wire) without losing coherence.
+* **Reusable insight**: A minimal working clone lets us reason about design tradeoffs, improvements, and constraints—and lays the foundation for reading, modifying, and extending Bitcoin Core itself.
+
+### Approach
+
+1. **Follow the whitepaper line-by-line**: Intro → §2 Transactions → §§3–4 Timestamp & PoW → §5 Network → §6 Incentive → etc.
+2. **Implement the “happy path” only**:
+
+   * P2PKH transactions, SIGHASH_ALL, fixed block subsidy, leading-zero-bits PoW.
+   * No forks, reorgs, compact difficulty encoding, mempool policies, or full Script VM.
+3. **Keep it modular**: each whitepaper concept → its own header/implementation file.
+4. **Favor simplicity over completeness**: if a detail isn’t essential to understanding, abstract it away; if it is, implement it cleanly.
+5. **Iterative sanity checks**: after each module, write a `main()` that exercises it end-to-end, so understanding stays anchored.
+
+### Outcome
+
+By the end of the project we will have:
+
+* A **working mini-Bitcoin** with keys, transactions, blocks, PoW, and a chainstate.
+* A **clean modular architecture** with clear interfaces (`crypto`, `script_min`, `tx`, `block`, `chain`, `node` later).
+* A **reference spec** (this document) that maps code modules to whitepaper sections, explains why each exists, and documents invariants and workflows.
+* The ability to **spin up our own blockchain network**, reason about Bitcoin’s design decisions, and extend the system for experimentation.
+
+---
+
+# Quick Start
+
 run:
 
 make run
@@ -36,41 +73,6 @@ The saving of the blockchain happens in thefolllowing places:
 The loading of the blockchain happens in the following places:
 - on startup
 - (later) after a crash
----
-
-# Purpose & Specification
-
-The goal of this project is to **develop a clear, working mental model of Bitcoin’s design and codebase** by re-implementing the system described in the 2008 whitepaper, step by step, in **minimal C++**.
-
-Rather than immediately wrestling with the full complexity of Bitcoin Core, this project follows a **happy-path implementation** that emphasizes **clarity, modularity, and simplicity**. By the end, we want a toy blockchain that can be held entirely in memory—something small enough to “fit in the brain” but faithful enough to reflect the real Bitcoin design.
-
-### Why we are doing this
-
-* **Educational clarity**: The Bitcoin codebase (even early 0.1) is large and intimidating. It’s easy to get lost in utilities, constants, or C++ idioms and lose sight of the big picture.
-* **Bridging theory and practice**: Reading the whitepaper provides the thousand-foot conceptual view; implementing each section grounds that theory in working code.
-* **Mental modeling**: We want to move fluidly between the **macro view** (system design, data flow), the **meso view** (modules, interfaces), and the **micro view** (specific functions, bytes on the wire) without losing coherence.
-* **Reusable insight**: A minimal working clone lets us reason about design tradeoffs, improvements, and constraints—and lays the foundation for reading, modifying, and extending Bitcoin Core itself.
-
-### Approach
-
-1. **Follow the whitepaper line-by-line**: Intro → §2 Transactions → §§3–4 Timestamp & PoW → §5 Network → §6 Incentive → etc.
-2. **Implement the “happy path” only**:
-
-   * P2PKH transactions, SIGHASH_ALL, fixed block subsidy, leading-zero-bits PoW.
-   * No forks, reorgs, compact difficulty encoding, mempool policies, or full Script VM.
-3. **Keep it modular**: each whitepaper concept → its own header/implementation file.
-4. **Favor simplicity over completeness**: if a detail isn’t essential to understanding, abstract it away; if it is, implement it cleanly.
-5. **Iterative sanity checks**: after each module, write a `main()` that exercises it end-to-end, so understanding stays anchored.
-
-### Outcome
-
-By the end of the project we will have:
-
-* A **working mini-Bitcoin** with keys, transactions, blocks, PoW, and a chainstate.
-* A **clean modular architecture** with clear interfaces (`crypto`, `script_min`, `tx`, `block`, `chain`, `node` later).
-* A **reference spec** (this document) that maps code modules to whitepaper sections, explains why each exists, and documents invariants and workflows.
-* The ability to **spin up our own blockchain network**, reason about Bitcoin’s design decisions, and extend the system for experimentation.
-
 ---
 
 # Babycoin — Reference Spec (v0, Happy Path)
